@@ -196,11 +196,8 @@ button {
 }
 
 .hero__inner {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 32px;
-  align-items: center;
   padding: 56px 24px 64px;
+  max-width: 640px;
 }
 
 .hero__eyebrow {
@@ -242,19 +239,9 @@ button {
   background: var(--marigold-400);
 }
 
-.hero__art {
-  width: 100%;
-  height: auto;
-}
-
 @media (max-width: 760px) {
   .hero__inner {
-    grid-template-columns: 1fr;
     padding-top: 40px;
-  }
-  .hero__art {
-    max-width: 260px;
-    margin: 0 auto;
   }
 }
 
