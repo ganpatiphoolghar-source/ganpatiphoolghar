@@ -356,7 +356,17 @@ button {
   }
 }
 
-@media (max-width: 580px) {
+@media (max-width: 640px) {
+  .wrap {
+    padding: 0 20px;
+  }
+
+  .product-grid {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
   .product-grid {
     grid-template-columns: 1fr;
   }
@@ -368,7 +378,7 @@ button {
   overflow: hidden;
   background: var(--ivory-100);
   box-shadow: var(--shadow-card);
-  border-radius: 6px;
+  border-radius: 12px;
 }
 
 .card__badge {
@@ -510,6 +520,16 @@ button {
   font-size: 13px;
   color: var(--marigold-300);
   font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .card {
+    border-radius: 18px;
+  }
+
+  .card__overlay {
+    border-radius: 0 0 18px 18px;
+  }
 }
 
 .empty-state {
