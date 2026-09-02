@@ -424,9 +424,7 @@ async function submitOrder(payload) {
   const endpoint = SITE_CONFIG.ordersEndpoint;
   if (
     !endpoint ||
-    endpoint.includes(
-      "https://script.google.com/macros/s/AKfycbyyz5DjTRpUx6ehbGzalOzjsrHpmtwEIOEKehadAJTB1uU8D-764nHqu4x3A2rr-3qDIw/exec",
-    )
+    endpoint.includes("PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE")
   ) {
     console.warn(
       "SITE_CONFIG.ordersEndpoint is not set — the order was NOT saved to Google Sheets. See README.md to connect it.",
