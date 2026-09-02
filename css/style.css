@@ -523,6 +523,10 @@ button {
 }
 
 @media (max-width: 640px) {
+  .toolbar {
+    position: static;
+  }
+
   .card {
     border-radius: 18px;
   }
