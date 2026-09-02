@@ -29,7 +29,7 @@ const HEADERS = [
   "Delivery Charge",
   "Total",
   "Payment Method",
-  "Notes"
+  "Notes",
 ];
 
 function doPost(e) {
@@ -50,24 +50,24 @@ function doPost(e) {
       data.deliveryCharge || 0,
       data.total || 0,
       data.paymentMethod || "Cash on Delivery",
-      data.notes || ""
+      data.notes || "",
     ]);
 
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: "ok", orderId: data.orderId }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(
+      JSON.stringify({ status: "ok", orderId: data.orderId }),
+    ).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: "error", message: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(
+      JSON.stringify({ status: "error", message: err.message }),
+    ).setMimeType(ContentService.MimeType.JSON);
   }
 }
 
 // Lets you open the Web App URL directly in a browser to confirm it's alive.
 function doGet(e) {
-  return ContentService
-    .createTextOutput("Bappa Phool Bazaar order endpoint is running.")
-    .setMimeType(ContentService.MimeType.TEXT);
+  return ContentService.createTextOutput(
+    "Bappa Phool Bazaar order endpoint is running.",
+  ).setMimeType(ContentService.MimeType.TEXT);
 }
 
 function getOrdersSheet_() {

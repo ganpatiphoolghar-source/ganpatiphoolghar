@@ -363,18 +363,19 @@ button {
 }
 
 .card {
-  background: var(--ivory-050);
-  border-top: 3px solid var(--marigold-500);
-  box-shadow: var(--shadow-card);
-  display: flex;
-  flex-direction: column;
   position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--ivory-100);
+  box-shadow: var(--shadow-card);
+  border-radius: 6px;
 }
 
 .card__badge {
   position: absolute;
   top: 12px;
   left: 12px;
+  z-index: 3;
   background: var(--leaf-600);
   color: var(--ivory-050);
   font-size: 12px;
@@ -383,85 +384,105 @@ button {
   border-radius: var(--radius-s);
 }
 
-.card__art {
-  height: 150px;
+.card__media {
+  position: absolute;
+  inset: 0;
+}
+
+.card__media .tile-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card__media .tile-fallback {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--ivory-100);
-  overflow: hidden;
 }
 
-.card__art svg {
-  width: 84px;
-  height: 84px;
+.card__media .tile-fallback svg {
+  width: 46%;
+  height: 46%;
 }
 
-.card__art img {
-  display: block;
+.card--out .card__media {
+  filter: grayscale(0.5);
+  opacity: 0.6;
 }
 
-.card__body {
-  padding: 16px 18px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
+.card__overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: 14px 16px 16px;
+  background: linear-gradient(
+    to top,
+    rgba(42, 20, 24, 0.82) 0%,
+    rgba(42, 20, 24, 0.62) 65%,
+    rgba(42, 20, 24, 0) 100%
+  );
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+  -webkit-mask-image: linear-gradient(to top, black 60%, transparent 100%);
+  mask-image: linear-gradient(to top, black 60%, transparent 100%);
 }
 
 .card__name {
   font-family: "Mukta", sans-serif;
   font-weight: 700;
-  font-size: 17px;
-  color: var(--maroon-950);
-}
-
-.card__desc {
-  font-size: 14px;
-  color: var(--ink-700);
+  font-size: 16.5px;
+  color: var(--ivory-050);
   margin: 0;
-  flex: 1;
 }
 
 .card__unit {
-  font-size: 13px;
-  color: var(--ink-700);
-  opacity: 0.8;
+  font-size: 12.5px;
+  color: rgba(251, 241, 222, 0.78);
+  margin: 2px 0 10px;
 }
 
 .card__footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 10px;
+  gap: 8px;
 }
 
 .card__price {
   font-weight: 700;
-  font-size: 18px;
-  color: var(--maroon-950);
+  font-size: 17px;
+  color: var(--ivory-050);
 }
 
 .card__add {
-  background: var(--maroon-950);
-  color: var(--ivory-050);
+  background: var(--marigold-500);
+  color: var(--maroon-950);
   border: none;
-  padding: 9px 16px;
+  padding: 8px 15px;
   border-radius: var(--radius-s);
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13.5px;
 }
 
 .card__add:hover {
-  background: var(--maroon-800);
+  background: var(--marigold-400);
 }
 
 .card__stepper {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--maroon-950);
+  background: rgba(251, 241, 222, 0.14);
+  border: 1px solid rgba(251, 241, 222, 0.4);
   border-radius: var(--radius-s);
   padding: 4px 6px;
 }
@@ -471,8 +492,8 @@ button {
   border: none;
   color: var(--ivory-050);
   font-size: 17px;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   cursor: pointer;
   line-height: 1;
 }
@@ -485,13 +506,9 @@ button {
   font-size: 14px;
 }
 
-.card--out .card__art {
-  opacity: 0.5;
-}
-
 .card__oos {
   font-size: 13px;
-  color: var(--maroon-700);
+  color: var(--marigold-300);
   font-weight: 600;
 }
 
@@ -827,6 +844,67 @@ button {
 
 .form-error-banner.is-visible {
   display: block;
+}
+
+/* ============================================================
+   ABOUT / PERSONAL TOUCH
+   ============================================================ */
+.about-florist {
+  padding: 8px 0 48px;
+}
+
+.about-florist__card {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  background: var(--ivory-050);
+  border-left: 4px solid var(--marigold-500);
+  padding: 22px 24px;
+  border-radius: 4px;
+}
+
+.about-florist__avatar {
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--maroon-950);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-florist__avatar svg {
+  width: 28px;
+  height: 28px;
+}
+
+.about-florist__quote {
+  font-size: 15.5px;
+  color: var(--ink-900);
+  margin: 0 0 12px;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.about-florist__name {
+  font-weight: 700;
+  color: var(--maroon-950);
+  font-size: 15px;
+  margin: 0;
+}
+
+.about-florist__meta {
+  font-size: 13.5px;
+  color: var(--ink-700);
+  margin: 3px 0 0;
+  line-height: 1.6;
+}
+
+@media (max-width: 560px) {
+  .about-florist__card {
+    flex-direction: column;
+  }
 }
 
 /* ============================================================

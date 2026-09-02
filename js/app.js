@@ -41,6 +41,11 @@ function applyConfigToDom() {
   setText("footerAreas", c.deliveryAreas);
   setText("footerNote", c.deliveryNote);
   setText("footerSeason", c.season);
+  setText("ownerNote", `“${c.ownerNote}”`);
+  setText("ownerName", c.ownerName);
+  setText("ownerAddress", c.address);
+  setText("footerOwnerName", c.ownerName);
+  setText("footerAddress", c.address);
 
   const phoneEl = document.getElementById("footerPhone");
   phoneEl.textContent = c.phoneDisplay;
@@ -126,12 +131,21 @@ function renderGrid() {
   });
 }
 
-function productArtHtml(p, size) {
+function tileMediaHtml(p) {
+  const icon = ICONS[p.icon] || ICONS.leaf;
+  const fallback = `<div class="tile-fallback">${icon}</div>`;
+  if (!p.image) return fallback;
+  const escapedFallback = fallback
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+  return `<img class="tile-img" src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.outerHTML='${escapedFallback}';" />`;
+}
+
+function thumbMediaHtml(p) {
   const icon = ICONS[p.icon] || ICONS.leaf;
   if (!p.image) return icon;
-  // Show the real photo; if it fails to load (file missing), swap in the drawn icon instead.
-  const fallback = icon.replace(/"/g, "&quot;");
-  return `<img src="${p.image}" alt="${p.name}" loading="lazy" width="${size}" height="${size}" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='${fallback}';" />`;
+  const escapedIcon = icon.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  return `<img src="${p.image}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='${escapedIcon}';" />`;
 }
 
 function productCardHtml(p) {
@@ -149,12 +163,11 @@ function productCardHtml(p) {
       : `<button type="button" class="card__add" data-add="${p.id}">Add</button>`;
 
   return `
-    <article class="card ${!p.inStock ? "card--out" : ""}">
+    <article class="card ${!p.inStock ? "card--out" : ""}" title="${p.description}">
       ${badge}
-      <div class="card__art">${productArtHtml(p, 150)}</div>
-      <div class="card__body">
+      <div class="card__media">${tileMediaHtml(p)}</div>
+      <div class="card__overlay">
         <h3 class="card__name">${p.name}</h3>
-        <p class="card__desc">${p.description}</p>
         <p class="card__unit">${p.unit}</p>
         <div class="card__footer">
           <span class="card__price">${SITE_CONFIG.currencySymbol}${p.price}</span>
@@ -235,7 +248,7 @@ function renderCartLines() {
       if (!p) return "";
       return `
         <div class="cart-line">
-          <div class="cart-line__art">${productArtHtml(p, 48)}</div>
+          <div class="cart-line__art">${thumbMediaHtml(p)}</div>
           <div class="cart-line__info">
             <div class="cart-line__name">${p.name}</div>
             <div class="cart-line__unit">${SITE_CONFIG.currencySymbol}${p.price} · ${p.unit}</div>

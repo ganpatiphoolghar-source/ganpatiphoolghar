@@ -9,11 +9,15 @@ const SITE_CONFIG = {
   shopName: "Bappa Phool Bazaar",
   tagline: "Fresh flowers for Bappa's darbar, delivered to your door",
   season: "Ganesh Chaturthi 2026 · 14–23 September",
+  ownerName: "Mukund Yadav",
+  ownerNote:
+    "I hand-pick every garland myself the same morning and deliver it to your door in time for the aarti — Ganpati Bappa Morya!",
 
   // --- Contact & delivery ---
-  whatsappNumber: "919999999999", // country code + number, no spaces or +
-  phoneDisplay: "+91 99999 99999",
+  whatsappNumber: "919604062444", // country code + number, no spaces or +
+  phoneDisplay: "+91 96040 62444",
   email: "hello@bappaphoolbazaar.example",
+  address: "Oxford Paradise, Vidya Valley School Road, Sus Gaon, Pune 411021",
   deliveryAreas: "Delivering across Pune city during the festival",
   deliveryNote:
     "Orders placed before 6 PM are delivered the next morning. Cash on Delivery only.",
