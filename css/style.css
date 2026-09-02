@@ -48,7 +48,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   font-family: "Yatra One", "Mukta", cursive;
   font-weight: 400;
   line-height: 1.15;
@@ -60,7 +62,8 @@ a {
   color: inherit;
 }
 
-img, svg {
+img,
+svg {
   display: block;
   max-width: 100%;
 }
@@ -86,8 +89,17 @@ button {
 .garland {
   height: 26px;
   width: 100%;
-  background-image: radial-gradient(circle at 10px 10px, var(--marigold-500) 6px, transparent 6.5px),
-    radial-gradient(circle at 30px 16px, var(--marigold-400) 5px, transparent 5.5px),
+  background-image:
+    radial-gradient(
+      circle at 10px 10px,
+      var(--marigold-500) 6px,
+      transparent 6.5px
+    ),
+    radial-gradient(
+      circle at 30px 16px,
+      var(--marigold-400) 5px,
+      transparent 5.5px
+    ),
     radial-gradient(circle at 20px 4px, var(--leaf-600) 3px, transparent 3.5px);
   background-size: 40px 26px;
   background-repeat: repeat-x;
@@ -377,11 +389,16 @@ button {
   align-items: center;
   justify-content: center;
   background: var(--ivory-100);
+  overflow: hidden;
 }
 
 .card__art svg {
   width: 84px;
   height: 84px;
+}
+
+.card__art img {
+  display: block;
 }
 
 .card__body {
@@ -580,11 +597,16 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 .cart-line__art svg {
   width: 30px;
   height: 30px;
+}
+
+.cart-line__art img {
+  display: block;
 }
 
 .cart-line__info {
@@ -834,7 +856,8 @@ button {
   margin-bottom: 10px;
 }
 
-.site-footer p, .site-footer a {
+.site-footer p,
+.site-footer a {
   font-size: 14px;
   line-height: 1.7;
   text-decoration: none;
@@ -865,7 +888,9 @@ button {
   z-index: 60;
   opacity: 0;
   pointer-events: none;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .toast.is-visible {

@@ -126,9 +126,16 @@ function renderGrid() {
   });
 }
 
+function productArtHtml(p, size) {
+  const icon = ICONS[p.icon] || ICONS.leaf;
+  if (!p.image) return icon;
+  // Show the real photo; if it fails to load (file missing), swap in the drawn icon instead.
+  const fallback = icon.replace(/"/g, "&quot;");
+  return `<img src="${p.image}" alt="${p.name}" loading="lazy" width="${size}" height="${size}" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='${fallback}';" />`;
+}
+
 function productCardHtml(p) {
   const qty = getQty(p.id);
-  const icon = ICONS[p.icon] || ICONS.leaf;
   const badge = p.featured ? `<span class="card__badge">Popular</span>` : "";
 
   const actionHtml = !p.inStock
@@ -144,7 +151,7 @@ function productCardHtml(p) {
   return `
     <article class="card ${!p.inStock ? "card--out" : ""}">
       ${badge}
-      <div class="card__art">${icon}</div>
+      <div class="card__art">${productArtHtml(p, 150)}</div>
       <div class="card__body">
         <h3 class="card__name">${p.name}</h3>
         <p class="card__desc">${p.description}</p>
@@ -228,7 +235,7 @@ function renderCartLines() {
       if (!p) return "";
       return `
         <div class="cart-line">
-          <div class="cart-line__art">${ICONS[p.icon] || ICONS.leaf}</div>
+          <div class="cart-line__art">${productArtHtml(p, 48)}</div>
           <div class="cart-line__info">
             <div class="cart-line__name">${p.name}</div>
             <div class="cart-line__unit">${SITE_CONFIG.currencySymbol}${p.price} · ${p.unit}</div>
