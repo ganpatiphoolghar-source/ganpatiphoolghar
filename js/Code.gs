@@ -15,6 +15,222 @@
  */
 
 const SHEET_NAME = "Orders";
+const PRODUCTS_SHEET_NAME = "Products";
+
+const PRODUCT_HEADERS = [
+  "ID",
+  "Name",
+  "Category",
+  "Category Label",
+  "Price",
+  "Unit",
+  "Image",
+  "Icon",
+  "Description",
+  "In Stock",
+  "Featured",
+];
+
+// Seeds the Products tab the first time it's created, so it's never
+// empty. Edit rows directly in the Sheet after that — this array is
+// not read again once the tab exists.
+const SEED_PRODUCTS = [
+  [
+    "marigold-haar",
+    "Marigold Garland",
+    "garlands",
+    "Garlands",
+    120,
+    "per garland (5 ft)",
+    "images/marigold-garland.jpg",
+    "marigold",
+    "Fresh genda phool haar, hand-strung the same morning.",
+    true,
+    true,
+  ],
+  [
+    "rose-haar",
+    "Rose Garland",
+    "garlands",
+    "Garlands",
+    180,
+    "per garland (5 ft)",
+    "images/rose-garland.jpg",
+    "rose",
+    "Red rose garland for the mandap or main idol.",
+    true,
+    false,
+  ],
+  [
+    "mixed-haar",
+    "Marigold & Rose Mix",
+    "garlands",
+    "Garlands",
+    150,
+    "per garland (5 ft)",
+    "images/marigold-rose-mix-garland.jpg",
+    "mala",
+    "Alternating marigold and rose, strung with tulsi leaves.",
+    true,
+    true,
+  ],
+  [
+    "loose-marigold",
+    "Loose Marigold",
+    "loose",
+    "Loose Flowers",
+    80,
+    "per kg",
+    "images/loose-marigold.jpg",
+    "marigold",
+    "Petals for rangoli, thali decoration, and scattering.",
+    true,
+    false,
+  ],
+  [
+    "loose-rose",
+    "Loose Rose Petals",
+    "loose",
+    "Loose Flowers",
+    100,
+    "per kg",
+    "images/loose-rose-petals.jpg",
+    "rose",
+    "Deep red petals, good for rangoli and welcome trails.",
+    true,
+    false,
+  ],
+  [
+    "lotus",
+    "Lotus Flowers",
+    "puja",
+    "Puja Essentials",
+    40,
+    "per piece",
+    "images/lotus-flowers.jpg",
+    "lotus",
+    "Fresh lotus for the main aarti, sold individually.",
+    true,
+    true,
+  ],
+  [
+    "durva",
+    "Durva Grass Bunch",
+    "puja",
+    "Puja Essentials",
+    20,
+    "per bunch (21 blades)",
+    "images/durva-grass.jpg",
+    "durva",
+    "Durvankur bunches, an essential offering for Ganpati.",
+    true,
+    false,
+  ],
+  [
+    "belpatra",
+    "Bel Patra",
+    "puja",
+    "Puja Essentials",
+    15,
+    "per bundle",
+    "images/bel-patra.jpg",
+    "belpatra",
+    "Trifoliate bel leaves for the puja thali.",
+    true,
+    false,
+  ],
+  [
+    "rangoli-flowers",
+    "Flower Rangoli Kit",
+    "decor",
+    "Decoration",
+    250,
+    "per kit (serves 2x2 ft)",
+    "images/flower-rangoli-kit.jpg",
+    "rangoli",
+    "Sorted petals in five colours, ready to lay out.",
+    true,
+    false,
+  ],
+  [
+    "mandap-toran",
+    "Marigold Toran",
+    "decor",
+    "Decoration",
+    90,
+    "per toran (door hanging)",
+    "images/marigold-toran.jpg",
+    "leaf",
+    "Marigold and mango-leaf toran for the entrance.",
+    true,
+    false,
+  ],
+  [
+    "paper-flower-backdrop",
+    "Paper Flower Mandap Backdrop",
+    "handmade",
+    "Handmade Decor",
+    450,
+    "per backdrop (4x6 ft)",
+    "images/paper-flower-backdrop.jpg",
+    "backdrop",
+    "Handmade crepe-paper flower backdrop for the mandap wall.",
+    true,
+    true,
+  ],
+  [
+    "coconut-diya-stand",
+    "Coconut Shell Diya Stand",
+    "handmade",
+    "Handmade Decor",
+    150,
+    "per pair",
+    "images/coconut-diya-stand.jpg",
+    "diya",
+    "Hand-painted coconut shell diyas, ready to light.",
+    true,
+    false,
+  ],
+  [
+    "jute-paper-toran",
+    "Jute & Paper Toran",
+    "handmade",
+    "Handmade Decor",
+    120,
+    "per toran (door hanging)",
+    "images/jute-paper-toran.jpg",
+    "jute",
+    "Handwoven jute toran with paper flower accents.",
+    true,
+    false,
+  ],
+  [
+    "paper-kandil-lantern",
+    "Paper Kandil Lantern",
+    "handmade",
+    "Handmade Decor",
+    90,
+    "per piece",
+    "images/paper-kandil-lantern.jpg",
+    "lantern",
+    "Folded paper kandil, hand-assembled and ready to hang.",
+    true,
+    true,
+  ],
+  [
+    "thermocol-mandap-set",
+    "Thermocol Mandap Decor Set",
+    "handmade",
+    "Handmade Decor",
+    600,
+    "per set (backdrop + pillars)",
+    "images/thermocol-mandap-set.jpg",
+    "backdrop",
+    "Complete eco-friendly thermocol decor set for a home mandap.",
+    true,
+    false,
+  ],
+];
 
 const HEADERS = [
   "Order ID",
@@ -63,11 +279,84 @@ function doPost(e) {
   }
 }
 
-// Lets you open the Web App URL directly in a browser to confirm it's alive.
+// GET requests. Add ?action=products to the Web app URL to fetch the
+// product catalog as JSON (this is what the website calls on page load).
+// With no action, it just confirms the endpoint is alive.
 function doGet(e) {
+  const action = e && e.parameter && e.parameter.action;
+  if (action === "products") {
+    return getProductsJson_();
+  }
   return ContentService.createTextOutput(
     "Bappa Phool Bazaar order endpoint is running.",
   ).setMimeType(ContentService.MimeType.TEXT);
+}
+
+function getProductsJson_() {
+  try {
+    const sheet = getProductsSheet_();
+    const values = sheet.getDataRange().getValues();
+    const headers = values.shift();
+
+    const products = values
+      .filter(function (row) {
+        return String(row[0]).trim() !== "";
+      })
+      .map(function (row) {
+        const obj = {};
+        headers.forEach(function (h, i) {
+          obj[h] = row[i];
+        });
+        return {
+          id: String(obj["ID"] || "").trim(),
+          name: String(obj["Name"] || "").trim(),
+          category: String(obj["Category"] || "").trim(),
+          categoryLabel: String(obj["Category Label"] || "").trim(),
+          price: Number(obj["Price"]) || 0,
+          unit: String(obj["Unit"] || "").trim(),
+          image: String(obj["Image"] || "").trim(),
+          icon: String(obj["Icon"] || "leaf").trim(),
+          description: String(obj["Description"] || "").trim(),
+          inStock:
+            obj["In Stock"] === true ||
+            String(obj["In Stock"]).toUpperCase() === "TRUE",
+          featured:
+            obj["Featured"] === true ||
+            String(obj["Featured"]).toUpperCase() === "TRUE",
+        };
+      });
+
+    return ContentService.createTextOutput(
+      JSON.stringify({ status: "ok", products: products }),
+    ).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(
+      JSON.stringify({ status: "error", message: err.message, products: [] }),
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function getProductsSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(PRODUCTS_SHEET_NAME);
+  const isNew = !sheet;
+  if (isNew) {
+    sheet = ss.insertSheet(PRODUCTS_SHEET_NAME);
+  }
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(PRODUCT_HEADERS);
+    sheet.getRange(1, 1, 1, PRODUCT_HEADERS.length).setFontWeight("bold");
+    sheet.setFrozenRows(1);
+    SEED_PRODUCTS.forEach(function (row) {
+      sheet.appendRow(row);
+    });
+    // "In Stock" is column 10, "Featured" is column 11 — turn them into
+    // tickable checkboxes for the next 200 rows so new products are easy
+    // to add without typing TRUE/FALSE by hand.
+    sheet.getRange(2, 10, 200, 1).insertCheckboxes();
+    sheet.getRange(2, 11, 200, 1).insertCheckboxes();
+  }
+  return sheet;
 }
 
 function getOrdersSheet_() {

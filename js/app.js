@@ -23,16 +23,88 @@ const ICONS = {
 let cart = []; // [{ id, qty }]
 let activeCategory = "all";
 let searchTerm = "";
+let PRODUCTS = DEFAULT_PRODUCTS.slice();
+let CATEGORIES = DEFAULT_CATEGORIES.slice();
 
 /* ============================================================
    INIT
    ============================================================ */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   applyConfigToDom();
+  document.getElementById("productGrid").innerHTML =
+    `<p class="results-count" style="grid-column:1/-1;">Loading flowers…</p>`;
+  await loadProductsFromSheet();
   renderCategoryChips();
   renderGrid();
   bindGlobalEvents();
 });
+
+/* ============================================================
+   LOAD PRODUCTS FROM THE GOOGLE SHEET
+   Falls back silently to DEFAULT_PRODUCTS / DEFAULT_CATEGORIES
+   (from js/products.js) if the Sheet can't be reached.
+   ============================================================ */
+async function loadProductsFromSheet() {
+  const endpoint = SITE_CONFIG.ordersEndpoint;
+  if (
+    !endpoint ||
+    endpoint.includes("PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE")
+  ) {
+    console.warn(
+      "SITE_CONFIG.ordersEndpoint is not set — showing the built-in product list instead of the Google Sheet.",
+    );
+    return;
+  }
+  try {
+    const url = `${endpoint}?action=products`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (
+      data &&
+      data.status === "ok" &&
+      Array.isArray(data.products) &&
+      data.products.length > 0
+    ) {
+      PRODUCTS = data.products.map(normalizeSheetProduct);
+      CATEGORIES = buildCategoriesFromProducts(PRODUCTS);
+    } else {
+      console.warn(
+        "Products sheet returned no items — showing the built-in product list instead.",
+      );
+    }
+  } catch (err) {
+    console.warn(
+      "Could not load products from the Google Sheet — showing the built-in product list instead.",
+      err,
+    );
+  }
+}
+
+function normalizeSheetProduct(p) {
+  const truthy = (v) => v === true || String(v).trim().toUpperCase() === "TRUE";
+  return {
+    id: String(p.id || "").trim(),
+    name: String(p.name || "").trim(),
+    category: String(p.category || "").trim() || "other",
+    categoryLabel: String(p.categoryLabel || p.category || "Other").trim(),
+    price: Number(p.price) || 0,
+    unit: String(p.unit || "").trim(),
+    image: String(p.image || "").trim(),
+    icon: String(p.icon || "leaf").trim(),
+    description: String(p.description || "").trim(),
+    inStock: truthy(p.inStock),
+    featured: truthy(p.featured),
+  };
+}
+
+function buildCategoriesFromProducts(products) {
+  const seen = new Map();
+  products.forEach((p) => {
+    if (!seen.has(p.category))
+      seen.set(p.category, p.categoryLabel || p.category);
+  });
+  return [...seen.entries()].map(([id, label]) => ({ id, label }));
+}
 
 function applyConfigToDom() {
   const c = SITE_CONFIG;

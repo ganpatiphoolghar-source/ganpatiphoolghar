@@ -1,6 +1,16 @@
 /* ============================================================
-   PRODUCT CATALOG
-   Add, remove, or edit products by editing the array below.
+   FALLBACK / STARTER PRODUCT CATALOG
+
+   As of this update, the live site normally loads its product list
+   from your Google Sheet (see the "Products" tab set up via
+   apps-script/Code.gs) — so Mukund can add or edit products himself
+   from the spreadsheet, no code changes needed.
+
+   The array below is only used as a fallback: if the Sheet can't be
+   reached (e.g. ordersEndpoint isn't set yet, or there's a network
+   issue), the site shows these items instead so it never breaks.
+   Keep it roughly in sync with the Sheet if you want the fallback to
+   look right, but it's not required.
 
    Fields:
    id          - unique short code, no spaces (used internally)
@@ -16,12 +26,13 @@
 
    IMAGES
    Put your photo files in an "images" folder next to index.html,
-   using exactly the filenames referenced below. If a file is missing,
-   the site automatically falls back to a drawn icon so nothing breaks.
+   using exactly the filenames referenced below (in the Sheet, the
+   "Image" column works the same way). If a file is missing, the site
+   automatically falls back to a drawn icon so nothing breaks.
    Recommended: square-ish photos, at least 500x500px, under 300KB each.
    ============================================================ */
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   { id: "garlands", label: "Garlands" },
   { id: "loose", label: "Loose Flowers" },
   { id: "puja", label: "Puja Essentials" },
@@ -31,7 +42,7 @@ const CATEGORIES = [
 
 /* Available icon keys (fallback only): marigold, rose, lotus, durva, belpatra, mala, rangoli, leaf, diya, lantern, backdrop, jute */
 
-const PRODUCTS = [
+const DEFAULT_PRODUCTS = [
   {
     id: "marigold-haar",
     name: "Marigold Garland",
