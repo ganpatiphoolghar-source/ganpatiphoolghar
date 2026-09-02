@@ -366,7 +366,7 @@ button {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 360px) {
   .product-grid {
     grid-template-columns: 1fr;
   }
@@ -533,6 +533,36 @@ button {
 
   .card__overlay {
     border-radius: 0 0 18px 18px;
+    padding: 10px 12px 12px;
+  }
+
+  .card__name {
+    font-size: 14.5px;
+  }
+
+  .card__unit {
+    font-size: 11px;
+    margin: 1px 0 8px;
+  }
+
+  .card__price {
+    font-size: 15px;
+  }
+
+  .card__add {
+    padding: 7px 12px;
+    font-size: 12.5px;
+  }
+
+  .card__stepper {
+    gap: 8px;
+    padding: 3px 5px;
+  }
+
+  .card__stepper button {
+    width: 20px;
+    height: 20px;
+    font-size: 15px;
   }
 }
 
