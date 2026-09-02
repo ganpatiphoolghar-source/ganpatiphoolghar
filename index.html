@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bappa Phool Bazaar — Ganesh Chaturthi Flowers</title>
+<meta name="description" content="Fresh marigold garlands, loose flowers and puja essentials for Ganesh Chaturthi, delivered to your door. Cash on delivery." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap site-header__bar">
+    <a class="brand" href="#top">
+      <svg class="brand__mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="20" cy="20" r="19" fill="#E2891A"/>
+        <circle cx="20" cy="20" r="7" fill="#430E17"/>
+        <circle cx="20" cy="9" r="4" fill="#430E17"/>
+        <circle cx="20" cy="31" r="4" fill="#430E17"/>
+        <circle cx="9" cy="20" r="4" fill="#430E17"/>
+        <circle cx="31" cy="20" r="4" fill="#430E17"/>
+      </svg>
+      <span class="brand__name" id="brandName">Bappa Phool Bazaar</span>
+    </a>
+    <div class="header-actions">
+      <button class="icon-btn" id="cartBtn" aria-haspopup="dialog" aria-controls="cartDrawer" aria-label="Open cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path d="M6 6h15l-1.5 9h-12z" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 6 5 3H2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="9.5" cy="20" r="1.4" fill="currentColor" stroke="none"/>
+          <circle cx="17.5" cy="20" r="1.4" fill="currentColor" stroke="none"/>
+        </svg>
+        <span class="cart-count" id="cartCount" hidden>0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap hero__inner">
+      <div>
+        <p class="hero__eyebrow" id="heroSeason">Ganesh Chaturthi 2026</p>
+        <h1>Fresh flowers for Bappa's darbar</h1>
+        <p id="heroTagline">Marigold garlands, loose flowers and puja essentials, picked in the morning and delivered same day. Pay cash when it arrives.</p>
+        <a href="#catalog" class="hero__cta">
+          Browse flowers
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+      <svg class="hero__art" viewBox="0 0 320 300" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <ellipse cx="160" cy="270" rx="120" ry="14" fill="rgba(0,0,0,0.15)"/>
+        <path d="M100 260 C 90 180, 100 120, 160 90 C 220 120, 230 180, 220 260 Z" fill="#82273A"/>
+        <circle cx="160" cy="80" r="34" fill="#E2891A"/>
+        <circle cx="160" cy="80" r="14" fill="#430E17"/>
+        <g fill="#F2B84B">
+          <circle cx="126" cy="60" r="9"/>
+          <circle cx="194" cy="60" r="9"/>
+          <circle cx="160" cy="34" r="9"/>
+          <circle cx="140" cy="45" r="6"/>
+          <circle cx="180" cy="45" r="6"/>
+        </g>
+        <path d="M60 190 q100 -40 200 0" stroke="#3F5E34" stroke-width="4" fill="none"/>
+        <g fill="#E2891A">
+          <circle cx="70" cy="188" r="7"/>
+          <circle cx="100" cy="176" r="7"/>
+          <circle cx="135" cy="168" r="7"/>
+          <circle cx="170" cy="166" r="7"/>
+          <circle cx="205" cy="172" r="7"/>
+          <circle cx="235" cy="184" r="7"/>
+          <circle cx="255" cy="190" r="7"/>
+        </g>
+      </svg>
+    </div>
+  </section>
+  <div class="garland" role="presentation"></div>
+
+  <div class="toolbar">
+    <div class="wrap toolbar__inner">
+      <label class="search-field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5" stroke-linecap="round"/></svg>
+        <input type="search" id="searchInput" placeholder="Search flowers, garlands, puja items…" aria-label="Search products" />
+      </label>
+      <div class="chip-row" id="categoryChips" role="group" aria-label="Filter by category"></div>
+    </div>
+    <div class="wrap">
+      <p class="results-count" id="resultsCount"></p>
+    </div>
+  </div>
+
+  <section class="catalog wrap" id="catalog">
+    <div class="product-grid" id="productGrid"></div>
+    <div class="empty-state" id="emptyState" hidden>
+      <h3>No flowers match that search</h3>
+      <p>Try a different word, or clear the filter above.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div>
+      <h3 id="footerBrandName">Bappa Phool Bazaar</h3>
+      <p id="footerTagline">Seasonal flowers for Ganesh Chaturthi. Fresh cut, hand-delivered, cash on delivery.</p>
+    </div>
+    <div>
+      <h3>Contact</h3>
+      <p><a href="#" id="footerPhone">+91 99999 99999</a></p>
+      <p><a href="#" id="footerEmail">hello@example.com</a></p>
+    </div>
+    <div>
+      <h3>Delivery</h3>
+      <p id="footerAreas">Delivering across the city during the festival.</p>
+      <p id="footerNote">Cash on Delivery only.</p>
+    </div>
+  </div>
+  <div class="wrap footer-bottom">
+    <p id="footerSeason">Ganesh Chaturthi 2026</p>
+  </div>
+</footer>
+
+<!-- Cart / checkout drawer -->
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+  <div class="drawer__header">
+    <h2 id="drawerTitle">Your cart</h2>
+    <button class="drawer__close" id="drawerClose" aria-label="Close cart">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+
+  <div class="drawer__body">
+
+    <!-- Step 1: cart items -->
+    <div class="drawer__step is-active" id="stepCart">
+      <div id="cartLines"></div>
+      <div class="cart-empty" id="cartEmpty" hidden>
+        <p>Your cart is empty. Add some flowers to get started.</p>
+      </div>
+    </div>
+
+    <!-- Step 2: checkout form -->
+    <div class="drawer__step" id="stepCheckout">
+      <button type="button" class="back-link" id="backToCart">&larr; Back to cart</button>
+      <div class="form-error-banner" id="formErrorBanner">Please fix the highlighted fields below.</div>
+      <form id="checkoutForm" novalidate>
+        <div class="field" id="field-name">
+          <label for="custName">Full name <span class="req">*</span></label>
+          <input type="text" id="custName" name="custName" autocomplete="name" required />
+          <p class="field-error">Please enter your name.</p>
+        </div>
+        <div class="field" id="field-phone">
+          <label for="custPhone">Phone number <span class="req">*</span></label>
+          <input type="tel" id="custPhone" name="custPhone" autocomplete="tel" inputmode="numeric" required />
+          <p class="field-error">Please enter a valid 10-digit phone number.</p>
+        </div>
+        <div class="field" id="field-address">
+          <label for="custAddress">Delivery address <span class="req">*</span></label>
+          <textarea id="custAddress" name="custAddress" autocomplete="street-address" required placeholder="House / flat no., street, landmark, area"></textarea>
+          <p class="field-error">Please enter your full delivery address.</p>
+        </div>
+        <div class="field" id="field-pincode">
+          <label for="custPincode">Pincode <span class="req">*</span></label>
+          <input type="text" id="custPincode" name="custPincode" autocomplete="postal-code" inputmode="numeric" required />
+          <p class="field-error">Please enter a valid 6-digit pincode.</p>
+        </div>
+        <div class="field" id="field-date">
+          <label for="custDate">Preferred delivery date</label>
+          <input type="date" id="custDate" name="custDate" />
+        </div>
+        <div class="field">
+          <label for="custNotes">Notes for the florist (optional)</label>
+          <textarea id="custNotes" name="custNotes" placeholder="e.g. deliver before 9 AM, call on arrival"></textarea>
+        </div>
+        <div class="cod-note" id="codNote">Payment: Cash on Delivery. Pay in cash when your order arrives — no online payment needed.</div>
+      </form>
+    </div>
+
+    <!-- Step 3: confirmation -->
+    <div class="drawer__step" id="stepConfirm">
+      <div class="confirm">
+        <svg class="confirm__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h3>Order placed</h3>
+        <p>Thank you! Your order <span class="order-id" id="confirmOrderId"></span> has been received. We'll deliver it in person and collect cash on delivery.</p>
+        <button type="button" class="btn-primary" id="confirmDoneBtn" style="margin-top:18px;">Continue shopping</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="drawer__footer" id="drawerFooter">
+    <div class="summary-row">
+      <span>Subtotal</span>
+      <span id="subtotalAmount">₹0</span>
+    </div>
+    <div class="summary-row" id="deliveryRow" hidden>
+      <span>Delivery</span>
+      <span id="deliveryAmount">₹0</span>
+    </div>
+    <div class="summary-row summary-row--total">
+      <span>Total</span>
+      <span id="totalAmount">₹0</span>
+    </div>
+    <button class="btn-primary" id="primaryActionBtn">Proceed to checkout</button>
+  </div>
+</aside>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/config.js"></script>
+<script src="js/products.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,509 @@
+/* ============================================================
+   ICONS — small hand-drawn-style SVGs per product category.
+   All self-contained, no external image files needed.
+   ============================================================ */
+const ICONS = {
+  marigold: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g fill="#E2891A"><circle cx="32" cy="18" r="9"/><circle cx="46" cy="26" r="9"/><circle cx="46" cy="42" r="9"/><circle cx="32" cy="50" r="9"/><circle cx="18" cy="42" r="9"/><circle cx="18" cy="26" r="9"/></g><circle cx="32" cy="34" r="11" fill="#430E17"/></svg>`,
+  rose: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path d="M32 10c10 2 16 10 16 18 0 10-8 18-16 22-8-4-16-12-16-22 0-8 6-16 16-18z" fill="#82273A"/><path d="M32 18c6 2 10 7 10 12 0 6-5 11-10 14-5-3-10-8-10-14 0-5 4-10 10-12z" fill="#A8384C"/><circle cx="32" cy="28" r="5" fill="#F2B84B"/></svg>`,
+  lotus: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g fill="#E7A9BE"><path d="M32 54c-4-10-4-20 0-30 4 10 4 20 0 30z"/><path d="M32 54c-10-4-17-11-20-20 10 1 17 8 20 20z"/><path d="M32 54c10-4 17-11 20-20-10 1-17 8-20 20z"/><path d="M32 54c-8-8-11-17-9-27 8 4 12 14 9 27z"/><path d="M32 54c8-8 11-17 9-27-8 4-12 14-9 27z"/></g><circle cx="32" cy="48" r="6" fill="#F2B84B"/></svg>`,
+  durva: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g stroke="#3F5E34" stroke-width="3" stroke-linecap="round" fill="none"><path d="M22 54C18 38 20 22 26 10"/><path d="M32 54C30 36 32 20 36 8"/><path d="M42 54C44 38 42 22 38 10"/></g><ellipse cx="32" cy="55" rx="14" ry="4" fill="#34492C"/></svg>`,
+  belpatra: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g fill="#3F5E34"><path d="M32 14c8 4 12 12 8 22-3 7-8 10-8 10s-5-3-8-10c-4-10 0-18 8-22z"/><path d="M14 30c8 0 14 5 16 12-8 2-16-2-19-9-.5-1 1-3 3-3z"/><path d="M50 30c-8 0-14 5-16 12 8 2 16-2 19-9 .5-1-1-3-3-3z"/></g><path d="M32 24v28" stroke="#26361F" stroke-width="1.5"/></svg>`,
+  mala: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path d="M8 20c8 20 40 20 48 0" stroke="#3F5E34" stroke-width="2" fill="none"/><g fill="#E2891A"><circle cx="12" cy="22" r="5"/><circle cx="22" cy="34" r="5"/><circle cx="32" cy="38" r="5"/><circle cx="42" cy="34" r="5"/><circle cx="52" cy="22" r="5"/></g><g fill="#82273A"><circle cx="17" cy="27" r="3"/><circle cx="27" cy="37" r="3"/><circle cx="37" cy="37" r="3"/><circle cx="47" cy="27" r="3"/></g></svg>`,
+  rangoli: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="22" fill="none" stroke="#F2B84B" stroke-width="2"/><g fill="#E2891A"><circle cx="32" cy="14" r="5"/><circle cx="32" cy="50" r="5"/><circle cx="14" cy="32" r="5"/><circle cx="50" cy="32" r="5"/></g><g fill="#82273A"><circle cx="20" cy="20" r="4"/><circle cx="44" cy="20" r="4"/><circle cx="20" cy="44" r="4"/><circle cx="44" cy="44" r="4"/></g><circle cx="32" cy="32" r="6" fill="#3F5E34"/></svg>`,
+  leaf: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path d="M12 46C10 26 22 12 40 10c4 16-4 32-22 38-3 1-5 0-6-2z" fill="#3F5E34"/><path d="M14 44C22 32 30 22 40 12" stroke="#26361F" stroke-width="2" fill="none"/></svg>`,
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let cart = []; // [{ id, qty }]
+let activeCategory = "all";
+let searchTerm = "";
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.addEventListener("DOMContentLoaded", () => {
+  applyConfigToDom();
+  renderCategoryChips();
+  renderGrid();
+  bindGlobalEvents();
+});
+
+function applyConfigToDom() {
+  const c = SITE_CONFIG;
+  document.title = `${c.shopName} — Ganesh Chaturthi Flowers`;
+  setText("brandName", c.shopName);
+  setText("footerBrandName", c.shopName);
+  setText("heroSeason", c.season);
+  setText("heroTagline", c.tagline);
+  setText("footerTagline", c.tagline);
+  setText("footerAreas", c.deliveryAreas);
+  setText("footerNote", c.deliveryNote);
+  setText("footerSeason", c.season);
+
+  const phoneEl = document.getElementById("footerPhone");
+  phoneEl.textContent = c.phoneDisplay;
+  phoneEl.href = `https://wa.me/${c.whatsappNumber}`;
+
+  const emailEl = document.getElementById("footerEmail");
+  emailEl.textContent = c.email;
+  emailEl.href = `mailto:${c.email}`;
+
+  document.getElementById("codNote").textContent =
+    `Payment: Cash on Delivery. Pay in cash when your order arrives — no online payment needed.${c.deliveryCharge ? ` A flat delivery charge of ${c.currencySymbol}${c.deliveryCharge} applies.` : ""}`;
+}
+
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+
+/* ============================================================
+   CATEGORY CHIPS
+   ============================================================ */
+function renderCategoryChips() {
+  const row = document.getElementById("categoryChips");
+  const all = [{ id: "all", label: "All flowers" }, ...CATEGORIES];
+  row.innerHTML = all
+    .map(
+      (cat) =>
+        `<button type="button" class="chip" data-cat="${cat.id}" aria-pressed="${cat.id === "all"}">${cat.label}</button>`,
+    )
+    .join("");
+
+  row.addEventListener("click", (e) => {
+    const btn = e.target.closest(".chip");
+    if (!btn) return;
+    activeCategory = btn.dataset.cat;
+    [...row.children].forEach((c) => c.setAttribute("aria-pressed", c === btn));
+    renderGrid();
+  });
+}
+
+/* ============================================================
+   PRODUCT GRID
+   ============================================================ */
+function getFilteredProducts() {
+  const term = searchTerm.trim().toLowerCase();
+  return PRODUCTS.filter((p) => {
+    const matchesCategory =
+      activeCategory === "all" || p.category === activeCategory;
+    const matchesSearch =
+      !term ||
+      p.name.toLowerCase().includes(term) ||
+      p.description.toLowerCase().includes(term) ||
+      p.category.toLowerCase().includes(term);
+    return matchesCategory && matchesSearch;
+  });
+}
+
+function renderGrid() {
+  const grid = document.getElementById("productGrid");
+  const empty = document.getElementById("emptyState");
+  const list = getFilteredProducts();
+
+  document.getElementById("resultsCount").textContent =
+    `${list.length} ${list.length === 1 ? "item" : "items"}`;
+
+  if (list.length === 0) {
+    grid.innerHTML = "";
+    empty.hidden = false;
+    return;
+  }
+  empty.hidden = true;
+
+  grid.innerHTML = list.map(productCardHtml).join("");
+
+  grid.querySelectorAll("[data-add]").forEach((btn) => {
+    btn.addEventListener("click", () => addToCart(btn.dataset.add));
+  });
+  grid.querySelectorAll("[data-inc]").forEach((btn) => {
+    btn.addEventListener("click", () => changeQty(btn.dataset.inc, 1));
+  });
+  grid.querySelectorAll("[data-dec]").forEach((btn) => {
+    btn.addEventListener("click", () => changeQty(btn.dataset.dec, -1));
+  });
+}
+
+function productCardHtml(p) {
+  const qty = getQty(p.id);
+  const icon = ICONS[p.icon] || ICONS.leaf;
+  const badge = p.featured ? `<span class="card__badge">Popular</span>` : "";
+
+  const actionHtml = !p.inStock
+    ? `<span class="card__oos">Out of stock</span>`
+    : qty > 0
+      ? `<div class="card__stepper">
+         <button type="button" data-dec="${p.id}" aria-label="Decrease quantity">&minus;</button>
+         <span>${qty}</span>
+         <button type="button" data-inc="${p.id}" aria-label="Increase quantity">&plus;</button>
+       </div>`
+      : `<button type="button" class="card__add" data-add="${p.id}">Add</button>`;
+
+  return `
+    <article class="card ${!p.inStock ? "card--out" : ""}">
+      ${badge}
+      <div class="card__art">${icon}</div>
+      <div class="card__body">
+        <h3 class="card__name">${p.name}</h3>
+        <p class="card__desc">${p.description}</p>
+        <p class="card__unit">${p.unit}</p>
+        <div class="card__footer">
+          <span class="card__price">${SITE_CONFIG.currencySymbol}${p.price}</span>
+          ${actionHtml}
+        </div>
+      </div>
+    </article>`;
+}
+
+/* ============================================================
+   CART
+   ============================================================ */
+function getQty(id) {
+  const line = cart.find((l) => l.id === id);
+  return line ? line.qty : 0;
+}
+
+function addToCart(id) {
+  const line = cart.find((l) => l.id === id);
+  if (line) line.qty += 1;
+  else cart.push({ id, qty: 1 });
+  onCartChanged();
+  showToast("Added to cart");
+}
+
+function changeQty(id, delta) {
+  const line = cart.find((l) => l.id === id);
+  if (!line) return;
+  line.qty += delta;
+  if (line.qty <= 0) cart = cart.filter((l) => l.id !== id);
+  onCartChanged();
+}
+
+function removeFromCart(id) {
+  cart = cart.filter((l) => l.id !== id);
+  onCartChanged();
+}
+
+function cartSubtotal() {
+  return cart.reduce((sum, line) => {
+    const p = PRODUCTS.find((x) => x.id === line.id);
+    return p ? sum + p.price * line.qty : sum;
+  }, 0);
+}
+
+function cartCount() {
+  return cart.reduce((sum, l) => sum + l.qty, 0);
+}
+
+function onCartChanged() {
+  renderGrid();
+  renderCartLines();
+  updateSummary();
+  updateCartBadge();
+}
+
+function updateCartBadge() {
+  const badge = document.getElementById("cartCount");
+  const count = cartCount();
+  badge.textContent = count;
+  badge.hidden = count === 0;
+}
+
+function renderCartLines() {
+  const container = document.getElementById("cartLines");
+  const emptyEl = document.getElementById("cartEmpty");
+
+  if (cart.length === 0) {
+    container.innerHTML = "";
+    emptyEl.hidden = false;
+    return;
+  }
+  emptyEl.hidden = true;
+
+  container.innerHTML = cart
+    .map((line) => {
+      const p = PRODUCTS.find((x) => x.id === line.id);
+      if (!p) return "";
+      return `
+        <div class="cart-line">
+          <div class="cart-line__art">${ICONS[p.icon] || ICONS.leaf}</div>
+          <div class="cart-line__info">
+            <div class="cart-line__name">${p.name}</div>
+            <div class="cart-line__unit">${SITE_CONFIG.currencySymbol}${p.price} · ${p.unit}</div>
+            <div class="cart-line__row">
+              <div class="cart-line__stepper">
+                <button type="button" data-dec="${p.id}" aria-label="Decrease quantity">&minus;</button>
+                <span>${line.qty}</span>
+                <button type="button" data-inc="${p.id}" aria-label="Increase quantity">&plus;</button>
+              </div>
+              <button type="button" class="cart-line__remove" data-remove="${p.id}">Remove</button>
+            </div>
+          </div>
+        </div>`;
+    })
+    .join("");
+
+  container
+    .querySelectorAll("[data-inc]")
+    .forEach((btn) =>
+      btn.addEventListener("click", () => changeQty(btn.dataset.inc, 1)),
+    );
+  container
+    .querySelectorAll("[data-dec]")
+    .forEach((btn) =>
+      btn.addEventListener("click", () => changeQty(btn.dataset.dec, -1)),
+    );
+  container
+    .querySelectorAll("[data-remove]")
+    .forEach((btn) =>
+      btn.addEventListener("click", () => removeFromCart(btn.dataset.remove)),
+    );
+}
+
+function updateSummary() {
+  const subtotal = cartSubtotal();
+  const delivery = cart.length > 0 ? SITE_CONFIG.deliveryCharge || 0 : 0;
+  const total = subtotal + delivery;
+
+  document.getElementById("subtotalAmount").textContent =
+    `${SITE_CONFIG.currencySymbol}${subtotal}`;
+  document.getElementById("totalAmount").textContent =
+    `${SITE_CONFIG.currencySymbol}${total}`;
+
+  const deliveryRow = document.getElementById("deliveryRow");
+  if (delivery > 0) {
+    deliveryRow.hidden = false;
+    document.getElementById("deliveryAmount").textContent =
+      `${SITE_CONFIG.currencySymbol}${delivery}`;
+  } else {
+    deliveryRow.hidden = true;
+  }
+
+  const primaryBtn = document.getElementById("primaryActionBtn");
+  primaryBtn.disabled = cart.length === 0;
+}
+
+/* ============================================================
+   DRAWER NAVIGATION
+   ============================================================ */
+let drawerStep = "cart"; // cart | checkout | confirm
+
+function openDrawer() {
+  document.getElementById("overlay").classList.add("is-open");
+  document.getElementById("cartDrawer").classList.add("is-open");
+  document.body.style.overflow = "hidden";
+  goToStep("cart");
+}
+
+function closeDrawer() {
+  document.getElementById("overlay").classList.remove("is-open");
+  document.getElementById("cartDrawer").classList.remove("is-open");
+  document.body.style.overflow = "";
+}
+
+function goToStep(step) {
+  drawerStep = step;
+  ["stepCart", "stepCheckout", "stepConfirm"].forEach((id) => {
+    document.getElementById(id).classList.remove("is-active");
+  });
+  const map = {
+    cart: "stepCart",
+    checkout: "stepCheckout",
+    confirm: "stepConfirm",
+  };
+  document.getElementById(map[step]).classList.add("is-active");
+
+  const title = document.getElementById("drawerTitle");
+  const footer = document.getElementById("drawerFooter");
+  const primaryBtn = document.getElementById("primaryActionBtn");
+
+  if (step === "cart") {
+    title.textContent = "Your cart";
+    footer.style.display = "block";
+    primaryBtn.textContent = "Proceed to checkout";
+    primaryBtn.disabled = cart.length === 0;
+  } else if (step === "checkout") {
+    title.textContent = "Delivery details";
+    footer.style.display = "block";
+    primaryBtn.textContent = "Place order (Cash on Delivery)";
+    primaryBtn.disabled = false;
+  } else if (step === "confirm") {
+    title.textContent = "Order confirmed";
+    footer.style.display = "none";
+  }
+}
+
+/* ============================================================
+   CHECKOUT FORM VALIDATION
+   ============================================================ */
+function validateCheckoutForm() {
+  const fields = [
+    { id: "custName", key: "field-name", test: (v) => v.trim().length >= 2 },
+    {
+      id: "custPhone",
+      key: "field-phone",
+      test: (v) => /^[0-9]{10}$/.test(v.trim()),
+    },
+    {
+      id: "custAddress",
+      key: "field-address",
+      test: (v) => v.trim().length >= 8,
+    },
+    {
+      id: "custPincode",
+      key: "field-pincode",
+      test: (v) => /^[0-9]{6}$/.test(v.trim()),
+    },
+  ];
+
+  let allValid = true;
+  fields.forEach(({ id, key, test }) => {
+    const input = document.getElementById(id);
+    const wrapper = document.getElementById(key);
+    const valid = test(input.value);
+    wrapper.classList.toggle("has-error", !valid);
+    if (!valid) allValid = false;
+  });
+
+  document
+    .getElementById("formErrorBanner")
+    .classList.toggle("is-visible", !allValid);
+  return allValid;
+}
+
+/* ============================================================
+   ORDER SUBMISSION
+   ============================================================ */
+function buildOrderPayload() {
+  const orderId = generateOrderId();
+  const items = cart.map((line) => {
+    const p = PRODUCTS.find((x) => x.id === line.id);
+    return {
+      name: p ? p.name : line.id,
+      qty: line.qty,
+      unit: p ? p.unit : "",
+      price: p ? p.price : 0,
+      lineTotal: p ? p.price * line.qty : 0,
+    };
+  });
+  const subtotal = cartSubtotal();
+  const delivery = SITE_CONFIG.deliveryCharge || 0;
+
+  return {
+    orderId,
+    orderDate: new Date().toISOString(),
+    customerName: document.getElementById("custName").value.trim(),
+    phone: document.getElementById("custPhone").value.trim(),
+    address: document.getElementById("custAddress").value.trim(),
+    pincode: document.getElementById("custPincode").value.trim(),
+    deliveryDate: document.getElementById("custDate").value || "",
+    notes: document.getElementById("custNotes").value.trim(),
+    paymentMethod: "Cash on Delivery",
+    items,
+    itemsSummary: items.map((i) => `${i.name} x${i.qty}`).join(", "),
+    subtotal,
+    deliveryCharge: delivery,
+    total: subtotal + delivery,
+  };
+}
+
+function generateOrderId() {
+  const now = new Date();
+  const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `BPB-${stamp}-${rand}`;
+}
+
+function pad(n) {
+  return n < 10 ? `0${n}` : `${n}`;
+}
+
+async function submitOrder(payload) {
+  const endpoint = SITE_CONFIG.ordersEndpoint;
+  if (
+    !endpoint ||
+    endpoint.includes(
+      "https://script.google.com/macros/s/AKfycbyyz5DjTRpUx6ehbGzalOzjsrHpmtwEIOEKehadAJTB1uU8D-764nHqu4x3A2rr-3qDIw/exec",
+    )
+  ) {
+    console.warn(
+      "SITE_CONFIG.ordersEndpoint is not set — the order was NOT saved to Google Sheets. See README.md to connect it.",
+    );
+    return;
+  }
+  try {
+    // Apps Script web apps don't return CORS headers for cross-origin reads,
+    // so we fire the request in no-cors mode. The row is still appended
+    // server-side; we just can't read a response back here.
+    await fetch(endpoint, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.error("Could not reach the orders endpoint:", err);
+  }
+}
+
+/* ============================================================
+   EVENT BINDING
+   ============================================================ */
+function bindGlobalEvents() {
+  document.getElementById("searchInput").addEventListener("input", (e) => {
+    searchTerm = e.target.value;
+    renderGrid();
+  });
+
+  document.getElementById("cartBtn").addEventListener("click", openDrawer);
+  document.getElementById("drawerClose").addEventListener("click", closeDrawer);
+  document.getElementById("overlay").addEventListener("click", closeDrawer);
+  document
+    .getElementById("backToCart")
+    .addEventListener("click", () => goToStep("cart"));
+  document.getElementById("confirmDoneBtn").addEventListener("click", () => {
+    closeDrawer();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeDrawer();
+  });
+
+  document
+    .getElementById("primaryActionBtn")
+    .addEventListener("click", async () => {
+      if (drawerStep === "cart") {
+        goToStep("checkout");
+        return;
+      }
+      if (drawerStep === "checkout") {
+        if (!validateCheckoutForm()) return;
+
+        const btn = document.getElementById("primaryActionBtn");
+        btn.disabled = true;
+        btn.textContent = "Placing order…";
+
+        const payload = buildOrderPayload();
+        await submitOrder(payload);
+
+        document.getElementById("confirmOrderId").textContent = payload.orderId;
+        cart = [];
+        onCartChanged();
+        document.getElementById("checkoutForm").reset();
+        goToStep("confirm");
+
+        btn.disabled = false;
+        btn.textContent = "Place order (Cash on Delivery)";
+      }
+    });
+}
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.classList.add("is-visible");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toast.classList.remove("is-visible"), 1800);
+}
