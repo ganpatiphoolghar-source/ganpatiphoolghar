@@ -205,6 +205,14 @@ function renderGrid() {
   grid.querySelectorAll("[data-dec]").forEach((btn) => {
     btn.addEventListener("click", () => changeQty(btn.dataset.dec, -1));
   });
+  grid.querySelectorAll("[data-view-image]").forEach((el) => {
+    const product = list.find((x) => x.id === el.dataset.viewImage);
+    const src = product ? normalizeImageUrl(product.image) : "";
+    if (src) {
+      el.classList.add("card__media--clickable");
+      el.addEventListener("click", () => openLightbox(src, product.name));
+    }
+  });
 }
 
 /* ============================================================
@@ -273,7 +281,7 @@ function productCardHtml(p) {
   return `
     <article class="card ${!p.inStock ? "card--out" : ""}" title="${p.description}">
       ${badge}
-      <div class="card__media">${tileMediaHtml(p)}</div>
+      <div class="card__media" data-view-image="${p.id}">${tileMediaHtml(p)}</div>
       <div class="card__overlay">
         <h3 class="card__name">${p.name}</h3>
         <p class="card__unit">${p.unit}</p>
@@ -283,6 +291,28 @@ function productCardHtml(p) {
         </div>
       </div>
     </article>`;
+}
+
+/* ============================================================
+   LIGHTBOX (full-size product photo)
+   ============================================================ */
+function openLightbox(src, name) {
+  const img = document.getElementById("lightboxImg");
+  img.src = src;
+  img.alt = name || "Product photo";
+  document.getElementById("lightbox").classList.add("is-open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeLightbox() {
+  document.getElementById("lightbox").classList.remove("is-open");
+  document.getElementById("lightboxImg").removeAttribute("src");
+  if (
+    !document.getElementById("cartDrawer").classList.contains("is-open") &&
+    !document.getElementById("adminDrawer").classList.contains("is-open")
+  ) {
+    document.body.style.overflow = "";
+  }
 }
 
 /* ============================================================
@@ -652,7 +682,15 @@ function bindGlobalEvents() {
     if (e.key === "Escape") {
       closeDrawer();
       closeAdminDrawer();
+      closeLightbox();
     }
+  });
+
+  document
+    .getElementById("lightboxClose")
+    .addEventListener("click", closeLightbox);
+  document.getElementById("lightbox").addEventListener("click", (e) => {
+    if (e.target.id === "lightbox") closeLightbox();
   });
 
   document
