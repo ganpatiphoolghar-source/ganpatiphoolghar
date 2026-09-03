@@ -387,6 +387,7 @@ function updateSummary() {
 let drawerStep = "cart"; // cart | checkout | confirm
 
 function openDrawer() {
+  document.getElementById("adminDrawer").classList.remove("is-open");
   document.getElementById("overlay").classList.add("is-open");
   document.getElementById("cartDrawer").classList.add("is-open");
   document.body.style.overflow = "hidden";
@@ -394,9 +395,11 @@ function openDrawer() {
 }
 
 function closeDrawer() {
-  document.getElementById("overlay").classList.remove("is-open");
   document.getElementById("cartDrawer").classList.remove("is-open");
-  document.body.style.overflow = "";
+  if (!document.getElementById("adminDrawer").classList.contains("is-open")) {
+    document.getElementById("overlay").classList.remove("is-open");
+    document.body.style.overflow = "";
+  }
 }
 
 function goToStep(step) {
@@ -560,7 +563,10 @@ function bindGlobalEvents() {
 
   document.getElementById("cartBtn").addEventListener("click", openDrawer);
   document.getElementById("drawerClose").addEventListener("click", closeDrawer);
-  document.getElementById("overlay").addEventListener("click", closeDrawer);
+  document.getElementById("overlay").addEventListener("click", () => {
+    closeDrawer();
+    closeAdminDrawer();
+  });
   document
     .getElementById("backToCart")
     .addEventListener("click", () => goToStep("cart"));
@@ -568,8 +574,40 @@ function bindGlobalEvents() {
     closeDrawer();
   });
 
+  document
+    .getElementById("adminBtn")
+    .addEventListener("click", openAdminDrawer);
+  document
+    .getElementById("adminDrawerClose")
+    .addEventListener("click", closeAdminDrawer);
+  document
+    .getElementById("adminLoginBtn")
+    .addEventListener("click", submitAdminLogin);
+  document.getElementById("adminPassword").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") submitAdminLogin();
+  });
+  document.getElementById("adminLogoutBtn").addEventListener("click", () => {
+    adminAuthed = false;
+    adminPassword = "";
+    document.getElementById("adminPassword").value = "";
+    goToAdminStep("login");
+  });
+  document.getElementById("adminAddToggle").addEventListener("click", () => {
+    document.getElementById("adminAddForm").hidden = false;
+    document.getElementById("adminAddToggle").hidden = true;
+  });
+  document
+    .getElementById("adminCancelAdd")
+    .addEventListener("click", resetAdminAddForm);
+  document
+    .getElementById("adminSaveBtn")
+    .addEventListener("click", submitNewProduct);
+
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeDrawer();
+    if (e.key === "Escape") {
+      closeDrawer();
+      closeAdminDrawer();
+    }
   });
 
   document
@@ -600,6 +638,213 @@ function bindGlobalEvents() {
         btn.textContent = "Place order (Cash on Delivery)";
       }
     });
+}
+
+/* ============================================================
+   ADMIN CONSOLE
+   Password is checked server-side (see apps-script/Code.gs) — it is
+   never stored in this file or in the page source, so it stays out of
+   your public GitHub repo. Login state is kept in memory only and is
+   lost on page reload, by design.
+   ============================================================ */
+let adminAuthed = false;
+let adminPassword = "";
+let adminIconsPopulated = false;
+
+function openAdminDrawer() {
+  document.getElementById("cartDrawer").classList.remove("is-open");
+  document.getElementById("overlay").classList.add("is-open");
+  document.getElementById("adminDrawer").classList.add("is-open");
+  document.body.style.overflow = "hidden";
+  populateAdminDropdowns();
+  goToAdminStep(adminAuthed ? "panel" : "login");
+  if (adminAuthed) renderAdminProductList();
+}
+
+function closeAdminDrawer() {
+  document.getElementById("adminDrawer").classList.remove("is-open");
+  if (!document.getElementById("cartDrawer").classList.contains("is-open")) {
+    document.getElementById("overlay").classList.remove("is-open");
+    document.body.style.overflow = "";
+  }
+}
+
+function goToAdminStep(step) {
+  document
+    .getElementById("adminStepLogin")
+    .classList.toggle("is-active", step === "login");
+  document
+    .getElementById("adminStepPanel")
+    .classList.toggle("is-active", step === "panel");
+  document.getElementById("adminLoginError").classList.remove("is-visible");
+}
+
+function populateAdminDropdowns() {
+  if (adminIconsPopulated) return;
+  const select = document.getElementById("adminIcon");
+  select.innerHTML = Object.keys(ICONS)
+    .map((key) => `<option value="${key}">${key}</option>`)
+    .join("");
+  adminIconsPopulated = true;
+}
+
+function refreshAdminCategoryOptions() {
+  const list = document.getElementById("adminCategoryOptions");
+  list.innerHTML = CATEGORIES.map(
+    (c) => `<option value="${c.id}">${c.label}</option>`,
+  ).join("");
+}
+
+async function submitAdminLogin() {
+  const pwInput = document.getElementById("adminPassword");
+  const password = pwInput.value;
+  const errorBanner = document.getElementById("adminLoginError");
+  const btn = document.getElementById("adminLoginBtn");
+  const endpoint = SITE_CONFIG.ordersEndpoint;
+
+  if (
+    !endpoint ||
+    endpoint.includes("PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE")
+  ) {
+    errorBanner.textContent =
+      "The order/admin endpoint isn't set up yet — see README.md.";
+    errorBanner.classList.add("is-visible");
+    return;
+  }
+  if (!password) {
+    errorBanner.textContent = "Please enter the admin password.";
+    errorBanner.classList.add("is-visible");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Logging in…";
+  errorBanner.classList.remove("is-visible");
+
+  try {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ type: "adminLogin", password }),
+    });
+    const data = await res.json();
+
+    if (data && data.authorized) {
+      adminAuthed = true;
+      adminPassword = password;
+      pwInput.value = "";
+      refreshAdminCategoryOptions();
+      goToAdminStep("panel");
+      renderAdminProductList();
+    } else {
+      errorBanner.textContent = "Incorrect password. Please try again.";
+      errorBanner.classList.add("is-visible");
+    }
+  } catch (err) {
+    errorBanner.textContent =
+      "Could not reach the server. Please check your connection and try again.";
+    errorBanner.classList.add("is-visible");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Log in";
+  }
+}
+
+function renderAdminProductList() {
+  const container = document.getElementById("adminProductList");
+  if (PRODUCTS.length === 0) {
+    container.innerHTML = `<p class="admin-intro">No products found yet.</p>`;
+    return;
+  }
+  container.innerHTML = PRODUCTS.map(
+    (p) => `
+    <div class="admin-product-row">
+      <div class="admin-product-row__thumb">${thumbMediaHtml(p)}</div>
+      <div class="admin-product-row__meta">
+        <div class="admin-product-row__name">${p.name}</div>
+        <div class="admin-product-row__sub">${p.categoryLabel || p.category} · ${p.unit}</div>
+        <span class="admin-badge ${p.inStock ? "admin-badge--in" : "admin-badge--out"}">${p.inStock ? "In stock" : "Out of stock"}</span>
+      </div>
+      <div class="admin-product-row__price">${SITE_CONFIG.currencySymbol}${p.price}</div>
+    </div>
+  `,
+  ).join("");
+}
+
+function resetAdminAddForm() {
+  document.getElementById("adminAddForm").reset();
+  document.getElementById("adminAddForm").hidden = true;
+  document.getElementById("adminAddToggle").hidden = false;
+  document.getElementById("adminSaveError").classList.remove("is-visible");
+  document.getElementById("adminInStock").checked = true;
+}
+
+async function submitNewProduct() {
+  const errorBanner = document.getElementById("adminSaveError");
+  const name = document.getElementById("adminName").value.trim();
+  const category = document.getElementById("adminCategory").value.trim();
+  const price = document.getElementById("adminPrice").value;
+
+  if (!name || !category || !price || Number(price) <= 0) {
+    errorBanner.textContent =
+      "Product name, category ID, and a price above 0 are required.";
+    errorBanner.classList.add("is-visible");
+    return;
+  }
+  errorBanner.classList.remove("is-visible");
+
+  const product = {
+    name,
+    category,
+    categoryLabel:
+      document.getElementById("adminCategoryLabel").value.trim() || category,
+    price: Number(price),
+    unit: document.getElementById("adminUnit").value.trim(),
+    image: document.getElementById("adminImage").value.trim(),
+    icon: document.getElementById("adminIcon").value,
+    description: document.getElementById("adminDescription").value.trim(),
+    inStock: document.getElementById("adminInStock").checked,
+    featured: document.getElementById("adminFeatured").checked,
+  };
+
+  const btn = document.getElementById("adminSaveBtn");
+  btn.disabled = true;
+  btn.textContent = "Saving…";
+
+  try {
+    const res = await fetch(SITE_CONFIG.ordersEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        type: "addProduct",
+        password: adminPassword,
+        product,
+      }),
+    });
+    const data = await res.json();
+
+    if (data && data.status === "ok") {
+      showToast("Product added");
+      resetAdminAddForm();
+      await loadProductsFromSheet();
+      renderCategoryChips();
+      renderGrid();
+      renderAdminProductList();
+      refreshAdminCategoryOptions();
+    } else {
+      errorBanner.textContent =
+        (data && data.message) ||
+        "Could not save the product. Please try again.";
+      errorBanner.classList.add("is-visible");
+    }
+  } catch (err) {
+    errorBanner.textContent =
+      "Could not reach the server. Please check your connection and try again.";
+    errorBanner.classList.add("is-visible");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save product";
+  }
 }
 
 /* ============================================================

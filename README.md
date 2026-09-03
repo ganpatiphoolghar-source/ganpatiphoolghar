@@ -19,11 +19,13 @@ Products now live in a **Products** tab in your Google Sheet, editable
 without touching any code — see step 3 below.
 
 **If you deployed `Code.gs` before this update:** you need to redeploy it
-so the new products feature is live. In Apps Script: paste the latest
-`apps-script/Code.gs` over your existing code, then **Deploy > Manage
-deployments > pencil icon > Version: New version > Deploy**. Your
-existing `ordersEndpoint` URL in `js/config.js` stays the same — you
-don't need to update it.
+so the new products, customer tracking, and admin console features are
+live. In Apps Script: paste the latest `apps-script/Code.gs` over your
+existing code, then **Deploy > Manage deployments > pencil icon >
+Version: New version > Deploy**. Your existing `ordersEndpoint` URL in
+`js/config.js` stays the same — you don't need to update it. Don't
+forget to also set the `ADMIN_PASSWORD` Script Property described in
+step 5, or the admin login will always say "incorrect password."
 
 ## 1. Connect the Google Sheet (so orders get saved)
 
@@ -127,7 +129,29 @@ against it. If that's a concern, you can turn the auto-fill off by
 removing the `custPhone` input listener block in `js/app.js` (search for
 `lookupReturningCustomer`) — orders will still save fine either way.
 
-## 5. Put it online
+## 5. Set up the admin console
+
+The site has an admin button (top-right, shield icon) where you can log
+in and add new products from your phone or laptop — no spreadsheet
+required for that part, though you can still use the Sheet too.
+
+1. In the Apps Script editor (where you pasted `Code.gs`), click the
+   gear icon on the left sidebar for **Project Settings**.
+2. Scroll to **Script Properties** and click **Add script property**.
+3. Set the key to `ADMIN_PASSWORD` and the value to a password you
+   choose. Click **Save**.
+4. That's it — the password lives only in this Script Property, never in
+   any file you push to GitHub, so it stays private even though your
+   repo (and `Code.gs`) may be public.
+
+On the site, click the shield icon top-right, enter that password, and
+you'll see every product currently in your Sheet plus a form to add a
+new one. New products are saved straight to the **Products** tab.
+
+**To change the password later:** just edit the value of that same
+Script Property — no redeploy needed.
+
+## 6. Put it online
 
 This is a static site (just HTML/CSS/JS), so any of these work and are
 free:

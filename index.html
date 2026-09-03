@@ -39,6 +39,32 @@
         <div class="header-actions">
           <button
             class="icon-btn"
+            id="adminBtn"
+            aria-haspopup="dialog"
+            aria-controls="adminDrawer"
+            aria-label="Admin console"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="m9.5 12 1.8 1.8L14.5 10"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+          <button
+            class="icon-btn"
             id="cartBtn"
             aria-haspopup="dialog"
             aria-controls="cartDrawer"
@@ -385,6 +411,156 @@
         <button class="btn-primary" id="primaryActionBtn">
           Proceed to checkout
         </button>
+      </div>
+    </aside>
+
+    <!-- Admin console drawer -->
+    <aside
+      class="drawer"
+      id="adminDrawer"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="adminDrawerTitle"
+    >
+      <div class="drawer__header">
+        <h2 id="adminDrawerTitle">Admin</h2>
+        <button
+          class="drawer__close"
+          id="adminDrawerClose"
+          aria-label="Close admin console"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            aria-hidden="true"
+          >
+            <path d="m6 6 12 12M18 6 6 18" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="drawer__body">
+        <!-- Login -->
+        <div class="drawer__step is-active" id="adminStepLogin">
+          <p class="admin-intro">Log in to view and add products.</p>
+          <div class="form-error-banner" id="adminLoginError">
+            Incorrect password. Please try again.
+          </div>
+          <div class="field">
+            <label for="adminPassword">Admin password</label>
+            <input
+              type="password"
+              id="adminPassword"
+              autocomplete="current-password"
+            />
+          </div>
+          <button type="button" class="btn-primary" id="adminLoginBtn">
+            Log in
+          </button>
+        </div>
+
+        <!-- Product management panel -->
+        <div class="drawer__step" id="adminStepPanel">
+          <button type="button" class="btn-primary" id="adminAddToggle">
+            + Add a new product
+          </button>
+
+          <form id="adminAddForm" class="admin-add-form" novalidate hidden>
+            <div class="form-error-banner" id="adminSaveError">
+              Please check the highlighted fields.
+            </div>
+
+            <div class="field">
+              <label for="adminName"
+                >Product name <span class="req">*</span></label
+              >
+              <input type="text" id="adminName" required />
+            </div>
+            <div class="field">
+              <label for="adminCategory"
+                >Category ID <span class="req">*</span></label
+              >
+              <input
+                type="text"
+                id="adminCategory"
+                list="adminCategoryOptions"
+                placeholder="e.g. garlands, handmade"
+                required
+              />
+              <datalist id="adminCategoryOptions"></datalist>
+            </div>
+            <div class="field">
+              <label for="adminCategoryLabel"
+                >Category label (shown to customers)</label
+              >
+              <input
+                type="text"
+                id="adminCategoryLabel"
+                placeholder="e.g. Garlands, Handmade Decor"
+              />
+            </div>
+            <div class="field">
+              <label for="adminPrice"
+                >Price (₹) <span class="req">*</span></label
+              >
+              <input type="number" id="adminPrice" min="0" step="1" required />
+            </div>
+            <div class="field">
+              <label for="adminUnit">Unit</label>
+              <input
+                type="text"
+                id="adminUnit"
+                placeholder="e.g. per garland (5 ft), per kg, per piece"
+              />
+            </div>
+            <div class="field">
+              <label for="adminImage">Image path</label>
+              <input
+                type="text"
+                id="adminImage"
+                placeholder="images/your-photo.jpg"
+              />
+            </div>
+            <div class="field">
+              <label for="adminIcon"
+                >Fallback icon (used if the image is missing)</label
+              >
+              <select id="adminIcon"></select>
+            </div>
+            <div class="field">
+              <label for="adminDescription">Description</label>
+              <textarea
+                id="adminDescription"
+                placeholder="One short line shown on the tile"
+              ></textarea>
+            </div>
+            <div class="admin-checkbox-row">
+              <label
+                ><input type="checkbox" id="adminInStock" checked /> In
+                stock</label
+              >
+              <label
+                ><input type="checkbox" id="adminFeatured" /> Featured (shows a
+                "Popular" badge)</label
+              >
+            </div>
+            <button type="button" class="btn-primary" id="adminSaveBtn">
+              Save product
+            </button>
+            <button type="button" class="btn-ghost" id="adminCancelAdd">
+              Cancel
+            </button>
+          </form>
+
+          <h3 class="admin-list-title">All products</h3>
+          <div id="adminProductList" class="admin-product-list"></div>
+
+          <button type="button" class="back-link" id="adminLogoutBtn">
+            Log out
+          </button>
+        </div>
       </div>
     </aside>
 
