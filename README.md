@@ -204,4 +204,5 @@ The site works fully (search, cart, checkout, confirmation) even before
 you've set up `ordersEndpoint` — it'll just log a warning in the browser
 console instead of saving the order, so you can try the whole flow first.
 #   g a n p a t i p h o o l g h a r  
+ #   g a n p a t i p h o o l g h a r  
  

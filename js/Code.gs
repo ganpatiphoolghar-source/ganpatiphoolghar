@@ -502,7 +502,8 @@ function handleUploadImage_(data) {
     const file = folder.createFile(blob);
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
-    const url = "https://drive.google.com/uc?export=view&id=" + file.getId();
+    const url =
+      "https://drive.google.com/thumbnail?id=" + file.getId() + "&sz=w1000";
     return jsonOutput_({ status: "ok", url: url, fileId: file.getId() });
   } catch (err) {
     return jsonOutput_({ status: "error", message: err.message });
@@ -522,6 +523,28 @@ function extensionForMime_(mimeType) {
 // Finds (or creates) an "images" folder in Google Drive, right next to
 // the spreadsheet this script is bound to, so uploaded product photos
 // stay organised alongside your orders/products data.
+// TEMPORARY — run this once from the editor (function dropdown at the
+// top > select debugImagesFolder_ > Run), then check View > Logs (or
+// the "Execution log" panel) for a clickable Drive folder link. Safe
+// to delete this function afterward, it doesn't affect the site.
+// TEMPORARY — this one has no trailing underscore so it actually shows
+// up in the Run dropdown (Apps Script hides functions ending in "_").
+// Select "runDebugImagesFolder" from the dropdown, click Run, then
+// check Executions (left sidebar) for the logged folder link.
+function runDebugImagesFolder() {
+  debugImagesFolder_();
+}
+
+function debugImagesFolder_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  Logger.log("Spreadsheet name: " + ss.getName());
+  Logger.log("Spreadsheet URL: " + ss.getUrl());
+
+  const folder = getImagesFolder_();
+  Logger.log("Images folder name: " + folder.getName());
+  Logger.log("Images folder URL: " + folder.getUrl());
+}
+
 function getImagesFolder_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const ssFile = DriveApp.getFileById(ss.getId());

@@ -217,22 +217,24 @@ function normalizeImageUrl(raw) {
   const value = String(raw || "").trim();
   if (!value) return "";
 
-  // Already a plain path or a non-Drive URL — use as-is.
-  if (!value.includes("drive.google.com")) return value;
+  // Not a Google-hosted link — use as-is (local path or another host).
+  if (!value.includes("google.com")) return value;
 
-  // Common Drive share link shapes:
+  // Common Drive link shapes, across the different domains/formats
+  // Google has used over time:
   //   https://drive.google.com/file/d/FILE_ID/view?usp=sharing
   //   https://drive.google.com/open?id=FILE_ID
-  //   https://drive.google.com/uc?id=FILE_ID&export=download
-  let fileId = "";
+  //   https://drive.google.com/uc?id=FILE_ID&export=view
+  //   https://drive.usercontent.google.com/download?id=FILE_ID&export=view
   const fileMatch = value.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
   const idMatch = value.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (fileMatch) fileId = fileMatch[1];
-  else if (idMatch) fileId = idMatch[1];
+  const fileId = fileMatch ? fileMatch[1] : idMatch ? idMatch[1] : "";
 
-  if (!fileId) return value; // unrecognised Drive URL shape — pass through
+  if (!fileId) return value; // unrecognised Google URL shape — pass through
 
-  return `https://drive.google.com/uc?export=view&id=${fileId}`;
+  // The "thumbnail" endpoint reliably renders inline in an <img> tag.
+  // (uc?export=view can trigger a virus-scan/download page instead.)
+  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
 }
 
 function tileMediaHtml(p) {
