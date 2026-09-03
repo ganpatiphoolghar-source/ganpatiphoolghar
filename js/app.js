@@ -551,6 +551,13 @@ function bindGlobalEvents() {
     renderGrid();
   });
 
+  document.getElementById("custPhone").addEventListener("input", (e) => {
+    const digits = e.target.value.trim();
+    if (/^[0-9]{10}$/.test(digits)) {
+      lookupReturningCustomer(digits);
+    }
+  });
+
   document.getElementById("cartBtn").addEventListener("click", openDrawer);
   document.getElementById("drawerClose").addEventListener("click", closeDrawer);
   document.getElementById("overlay").addEventListener("click", closeDrawer);
@@ -586,12 +593,54 @@ function bindGlobalEvents() {
         cart = [];
         onCartChanged();
         document.getElementById("checkoutForm").reset();
+        lastLookedUpPhone = "";
         goToStep("confirm");
 
         btn.disabled = false;
         btn.textContent = "Place order (Cash on Delivery)";
       }
     });
+}
+
+/* ============================================================
+   RETURNING CUSTOMER AUTO-FILL
+   ============================================================ */
+let lastLookedUpPhone = "";
+
+async function lookupReturningCustomer(phone) {
+  if (phone === lastLookedUpPhone) return; // already checked this number
+  lastLookedUpPhone = phone;
+
+  const endpoint = SITE_CONFIG.ordersEndpoint;
+  if (!endpoint || endpoint.includes("PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE"))
+    return;
+
+  try {
+    const res = await fetch(
+      `${endpoint}?action=customer&phone=${encodeURIComponent(phone)}`,
+    );
+    const data = await res.json();
+    const customer = data && data.customer;
+    if (!customer) return;
+
+    const nameField = document.getElementById("custName");
+    const addressField = document.getElementById("custAddress");
+    const pincodeField = document.getElementById("custPincode");
+
+    // Only fill in fields the customer hasn't already typed something into.
+    if (!nameField.value.trim() && customer.name)
+      nameField.value = customer.name;
+    if (!addressField.value.trim() && customer.address)
+      addressField.value = customer.address;
+    if (!pincodeField.value.trim() && customer.pincode)
+      pincodeField.value = customer.pincode;
+
+    if (customer.name || customer.address) {
+      showToast("Welcome back! We've filled in your details.");
+    }
+  } catch (err) {
+    console.warn("Could not look up returning customer.", err);
+  }
 }
 
 function showToast(message) {

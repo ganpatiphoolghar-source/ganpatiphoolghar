@@ -16,6 +16,18 @@
 
 const SHEET_NAME = "Orders";
 const PRODUCTS_SHEET_NAME = "Products";
+const CUSTOMERS_SHEET_NAME = "Customers";
+
+const CUSTOMER_HEADERS = [
+  "Phone",
+  "Name",
+  "Address",
+  "Pincode",
+  "Total Orders",
+  "Total Spent",
+  "First Order Date",
+  "Last Order Date",
+];
 
 const PRODUCT_HEADERS = [
   "ID",
@@ -269,6 +281,8 @@ function doPost(e) {
       data.notes || "",
     ]);
 
+    upsertCustomer_(data);
+
     return ContentService.createTextOutput(
       JSON.stringify({ status: "ok", orderId: data.orderId }),
     ).setMimeType(ContentService.MimeType.JSON);
@@ -279,17 +293,110 @@ function doPost(e) {
   }
 }
 
-// GET requests. Add ?action=products to the Web app URL to fetch the
-// product catalog as JSON (this is what the website calls on page load).
+// Adds a new row in the Customers tab the first time we see a phone
+// number, or updates their name/address/pincode and order totals if
+// we've seen them before. Keyed on phone number since there's no login.
+function upsertCustomer_(data) {
+  const sheet = getCustomersSheet_();
+  const phone = String(data.phone || "").trim();
+  if (!phone) return;
+
+  const values = sheet.getDataRange().getValues();
+  const now = new Date();
+  const total = Number(data.total) || 0;
+
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][0]).trim() === phone) {
+      const rowNum = i + 1;
+      const prevOrders = Number(values[i][4]) || 0;
+      const prevSpent = Number(values[i][5]) || 0;
+      sheet
+        .getRange(rowNum, 1, 1, CUSTOMER_HEADERS.length)
+        .setValues([
+          [
+            phone,
+            data.customerName || values[i][1],
+            data.address || values[i][2],
+            data.pincode || values[i][3],
+            prevOrders + 1,
+            prevSpent + total,
+            values[i][6],
+            now,
+          ],
+        ]);
+      return;
+    }
+  }
+
+  // Not found — add a new customer row.
+  sheet.appendRow([
+    phone,
+    data.customerName || "",
+    data.address || "",
+    data.pincode || "",
+    1,
+    total,
+    now,
+    now,
+  ]);
+}
+
+// GET requests. Add ?action=products to fetch the product catalog as
+// JSON, or ?action=customer&phone=NNNNNNNNNN to look up a returning
+// customer's saved details (used to auto-fill the checkout form).
 // With no action, it just confirms the endpoint is alive.
 function doGet(e) {
   const action = e && e.parameter && e.parameter.action;
   if (action === "products") {
     return getProductsJson_();
   }
+  if (action === "customer") {
+    return getCustomerJson_(e.parameter.phone);
+  }
   return ContentService.createTextOutput(
     "Bappa Phool Bazaar order endpoint is running.",
   ).setMimeType(ContentService.MimeType.TEXT);
+}
+
+function getCustomerJson_(phone) {
+  const cleanPhone = String(phone || "").trim();
+  let result = { status: "ok", customer: null };
+  try {
+    if (cleanPhone) {
+      const sheet = getCustomersSheet_();
+      const values = sheet.getDataRange().getValues();
+      for (let i = 1; i < values.length; i++) {
+        if (String(values[i][0]).trim() === cleanPhone) {
+          result.customer = {
+            name: values[i][1] || "",
+            address: values[i][2] || "",
+            pincode: values[i][3] || "",
+            totalOrders: values[i][4] || 0,
+          };
+          break;
+        }
+      }
+    }
+  } catch (err) {
+    result = { status: "error", message: err.message, customer: null };
+  }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(
+    ContentService.MimeType.JSON,
+  );
+}
+
+function getCustomersSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(CUSTOMERS_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(CUSTOMERS_SHEET_NAME);
+  }
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(CUSTOMER_HEADERS);
+    sheet.getRange(1, 1, 1, CUSTOMER_HEADERS.length).setFontWeight("bold");
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
 }
 
 function getProductsJson_() {
