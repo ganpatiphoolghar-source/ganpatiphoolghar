@@ -19,13 +19,14 @@ Products now live in a **Products** tab in your Google Sheet, editable
 without touching any code — see step 3 below.
 
 **If you deployed `Code.gs` before this update:** you need to redeploy it
-so the new products, customer tracking, and admin console features are
-live. In Apps Script: paste the latest `apps-script/Code.gs` over your
-existing code, then **Deploy > Manage deployments > pencil icon >
-Version: New version > Deploy**. Your existing `ordersEndpoint` URL in
-`js/config.js` stays the same — you don't need to update it. Don't
-forget to also set the `ADMIN_PASSWORD` Script Property described in
-step 5, or the admin login will always say "incorrect password."
+so the new products, customer tracking, admin console, and image upload
+features are live. In Apps Script: paste the latest `apps-script/Code.gs`
+over your existing code, then **Deploy > Manage deployments > pencil
+icon > Version: New version > Deploy**. Your existing `ordersEndpoint`
+URL in `js/config.js` stays the same — you don't need to update it. Set
+the `ADMIN_PASSWORD` Script Property described in step 5, and approve
+the extra Google Drive permission prompt described in that same step —
+otherwise photo uploads and admin login will fail.
 
 ## 1. Connect the Google Sheet (so orders get saved)
 
@@ -148,13 +149,27 @@ On the site, click the shield icon top-right, enter that password, and
 you'll see every product currently in your Sheet plus a form to add a
 new one. New products are saved straight to the **Products** tab. Click
 **Edit** on any existing product to change its details, price, or
-photo — saving updates that same row in the Sheet.
+photo — saving updates that same row in the Sheet. Use the search box
+above the list to quickly find a product to edit.
 
 For product photos, the **Image** field in the admin form accepts
 either a local path (`images/photo.jpg`, see the images/ folder) or a
 Google Drive share link — paste a Drive "Anyone with the link" share
 URL and the site converts it automatically. See `images/README.md` for
 the Drive sharing steps.
+
+**Or upload a photo directly** — click "Upload a photo" in the admin
+form, pick an image from your phone or computer, and it's automatically
+resized, saved into an **"images" folder in Google Drive** (created
+next to your spreadsheet), made viewable, and the Image field fills in
+for you. Nothing needs to go in your GitHub repo for this.
+
+**Important — one extra authorization step:** this version of `Code.gs`
+uses Google Drive for the first time. The first time you redeploy it (or
+run any function in the Apps Script editor), Google will ask you to
+re-authorize the script with an additional permission ("See, edit,
+create, and delete your Google Drive files"). This is expected — approve
+it the same way you approved the original setup, or uploads will fail.
 
 **To change the password later:** just edit the value of that same
 Script Property — no redeploy needed.

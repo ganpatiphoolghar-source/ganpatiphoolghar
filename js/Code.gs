@@ -24,6 +24,7 @@ const CUSTOMERS_SHEET_NAME = "Customers";
 // icon (Project Settings) > Script Properties > Add script property.
 // Key: ADMIN_PASSWORD   Value: choose a password.
 const ADMIN_PASSWORD_KEY = "ADMIN_PASSWORD";
+const IMAGES_FOLDER_NAME = "images";
 
 function jsonOutput_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(
@@ -307,6 +308,9 @@ function doPost(e) {
   if (type === "updateProduct") {
     return handleUpdateProduct_(data);
   }
+  if (type === "uploadImage") {
+    return handleUploadImage_(data);
+  }
   return handleOrder_(data);
 }
 
@@ -465,6 +469,70 @@ function handleUpdateProduct_(data) {
   } catch (err) {
     return jsonOutput_({ status: "error", message: err.message });
   }
+}
+
+function handleUploadImage_(data) {
+  if (!checkAdminPassword_(data.password)) {
+    return jsonOutput_({
+      status: "error",
+      message: "Incorrect admin password.",
+    });
+  }
+
+  const base64 = data.data;
+  const mimeType = data.mimeType || "image/jpeg";
+  const filenameRaw = data.filename || "product-photo";
+
+  if (!base64) {
+    return jsonOutput_({ status: "error", message: "No image data received." });
+  }
+
+  try {
+    const bytes = Utilities.base64Decode(base64);
+    const baseName = slugify_(filenameRaw.replace(/\.[a-zA-Z0-9]+$/, ""));
+    const uniqueName =
+      Utilities.getUuid().slice(0, 8) +
+      "-" +
+      baseName +
+      "." +
+      extensionForMime_(mimeType);
+    const blob = Utilities.newBlob(bytes, mimeType, uniqueName);
+
+    const folder = getImagesFolder_();
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    const url = "https://drive.google.com/uc?export=view&id=" + file.getId();
+    return jsonOutput_({ status: "ok", url: url, fileId: file.getId() });
+  } catch (err) {
+    return jsonOutput_({ status: "error", message: err.message });
+  }
+}
+
+function extensionForMime_(mimeType) {
+  const map = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+  };
+  return map[mimeType] || "jpg";
+}
+
+// Finds (or creates) an "images" folder in Google Drive, right next to
+// the spreadsheet this script is bound to, so uploaded product photos
+// stay organised alongside your orders/products data.
+function getImagesFolder_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ssFile = DriveApp.getFileById(ss.getId());
+  const parents = ssFile.getParents();
+  const parentFolder = parents.hasNext()
+    ? parents.next()
+    : DriveApp.getRootFolder();
+
+  const existing = parentFolder.getFoldersByName(IMAGES_FOLDER_NAME);
+  if (existing.hasNext()) return existing.next();
+  return parentFolder.createFolder(IMAGES_FOLDER_NAME);
 }
 
 // Adds a new row in the Customers tab the first time we see a phone

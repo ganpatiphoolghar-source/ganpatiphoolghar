@@ -526,10 +526,35 @@
                 placeholder="images/your-photo.jpg, or paste a Google Drive share link"
               />
               <p class="admin-field-hint">
-                Either a path like <code>images/photo.jpg</code>, or paste a
-                Google Drive share link (set sharing to "Anyone with the link")
-                — it'll be converted automatically.
+                Paste a path or Google Drive link above, or upload a photo below
+                — it's saved to Google Drive automatically and this field fills
+                in for you.
               </p>
+              <div class="admin-image-upload">
+                <label
+                  for="adminImageFile"
+                  class="btn-ghost admin-upload-label"
+                  id="adminImageUploadLabel"
+                  >Upload a photo</label
+                >
+                <input
+                  type="file"
+                  id="adminImageFile"
+                  accept="image/*"
+                  hidden
+                />
+                <img
+                  id="adminImagePreview"
+                  class="admin-image-preview"
+                  alt="Product photo preview"
+                  hidden
+                />
+              </div>
+              <p
+                class="admin-upload-error"
+                id="adminImageUploadStatus"
+                hidden
+              ></p>
             </div>
             <div class="field">
               <label for="adminIcon"
@@ -563,6 +588,24 @@
           </form>
 
           <h3 class="admin-list-title">All products</h3>
+          <label class="search-field admin-search-field">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" stroke-linecap="round" />
+            </svg>
+            <input
+              type="search"
+              id="adminSearchInput"
+              placeholder="Search products by name or category…"
+              aria-label="Search products in admin console"
+            />
+          </label>
           <div id="adminProductList" class="admin-product-list"></div>
 
           <button type="button" class="back-link" id="adminLogoutBtn">

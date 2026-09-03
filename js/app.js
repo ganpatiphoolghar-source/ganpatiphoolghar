@@ -613,13 +613,23 @@ function bindGlobalEvents() {
   document
     .getElementById("adminLoginBtn")
     .addEventListener("click", submitAdminLogin);
+  document.getElementById("adminSearchInput").addEventListener("input", (e) => {
+    adminSearchTerm = e.target.value;
+    renderAdminProductList();
+  });
+  document.getElementById("adminImageFile").addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    handleAdminImageUpload(file);
+  });
   document.getElementById("adminPassword").addEventListener("keydown", (e) => {
     if (e.key === "Enter") submitAdminLogin();
   });
   document.getElementById("adminLogoutBtn").addEventListener("click", () => {
     adminAuthed = false;
     adminPassword = "";
+    adminSearchTerm = "";
     document.getElementById("adminPassword").value = "";
+    document.getElementById("adminSearchInput").value = "";
     goToAdminStep("login");
   });
   document.getElementById("adminAddToggle").addEventListener("click", () => {
@@ -684,6 +694,7 @@ let adminAuthed = false;
 let adminPassword = "";
 let adminIconsPopulated = false;
 let editingProductId = null;
+let adminSearchTerm = "";
 
 function openAdminDrawer() {
   document.getElementById("cartDrawer").classList.remove("is-open");
@@ -786,12 +797,28 @@ async function submitAdminLogin() {
 
 function renderAdminProductList() {
   const container = document.getElementById("adminProductList");
+  const term = adminSearchTerm.trim().toLowerCase();
+  const list = !term
+    ? PRODUCTS
+    : PRODUCTS.filter(
+        (p) =>
+          p.name.toLowerCase().includes(term) ||
+          (p.category || "").toLowerCase().includes(term) ||
+          (p.categoryLabel || "").toLowerCase().includes(term),
+      );
+
   if (PRODUCTS.length === 0) {
     container.innerHTML = `<p class="admin-intro">No products found yet.</p>`;
     return;
   }
-  container.innerHTML = PRODUCTS.map(
-    (p) => `
+  if (list.length === 0) {
+    container.innerHTML = `<p class="admin-intro">No products match "${adminSearchTerm}".</p>`;
+    return;
+  }
+
+  container.innerHTML = list
+    .map(
+      (p) => `
     <div class="admin-product-row">
       <div class="admin-product-row__thumb">${thumbMediaHtml(p)}</div>
       <div class="admin-product-row__meta">
@@ -803,7 +830,8 @@ function renderAdminProductList() {
       <button type="button" class="admin-edit-btn" data-edit-id="${p.id}">Edit</button>
     </div>
   `,
-  ).join("");
+    )
+    .join("");
 
   container.querySelectorAll("[data-edit-id]").forEach((btn) => {
     btn.addEventListener("click", () => startEditProduct(btn.dataset.editId));
@@ -830,6 +858,17 @@ function startEditProduct(id) {
   document.getElementById("adminInStock").checked = p.inStock !== false;
   document.getElementById("adminFeatured").checked = !!p.featured;
 
+  const preview = document.getElementById("adminImagePreview");
+  const existingSrc = normalizeImageUrl(p.image);
+  if (existingSrc) {
+    preview.src = existingSrc;
+    preview.hidden = false;
+  } else {
+    preview.hidden = true;
+    preview.removeAttribute("src");
+  }
+  document.getElementById("adminImageUploadStatus").hidden = true;
+
   document.getElementById("adminAddForm").hidden = false;
   document.getElementById("adminAddToggle").hidden = true;
   document
@@ -845,6 +884,10 @@ function resetAdminAddForm() {
   document.getElementById("adminInStock").checked = true;
   document.getElementById("adminFormTitle").textContent = "Add a new product";
   document.getElementById("adminSaveBtn").textContent = "Save product";
+  document.getElementById("adminImagePreview").hidden = true;
+  document.getElementById("adminImagePreview").removeAttribute("src");
+  document.getElementById("adminImageUploadStatus").hidden = true;
+  document.getElementById("adminImageFile").value = "";
   editingProductId = null;
 }
 
@@ -919,6 +962,124 @@ async function submitNewProduct() {
   } finally {
     btn.disabled = false;
     btn.textContent = isEditing ? "Save changes" : "Save product";
+  }
+}
+
+/* ============================================================
+   ADMIN IMAGE UPLOAD
+   Resizes the chosen photo client-side (so uploads stay small and
+   fast), converts it to base64, and sends it to Apps Script, which
+   saves it into a "images" folder in Google Drive next to your
+   spreadsheet and returns a link the site can use directly.
+   ============================================================ */
+function resizeImageForUpload(file, maxDim, quality) {
+  maxDim = maxDim || 1000;
+  quality = quality || 0.82;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round(height * (maxDim / width));
+            width = maxDim;
+          } else {
+            width = Math.round(width * (maxDim / height));
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) =>
+            blob
+              ? resolve(blob)
+              : reject(new Error("Could not process the image.")),
+          "image/jpeg",
+          quality,
+        );
+      };
+      img.onerror = () => reject(new Error("Could not read that image file."));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error("Could not read the file."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+    reader.onerror = () => reject(new Error("Could not encode the image."));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function handleAdminImageUpload(file) {
+  const statusEl = document.getElementById("adminImageUploadStatus");
+  const preview = document.getElementById("adminImagePreview");
+  const label = document.getElementById("adminImageUploadLabel");
+  const fileInput = document.getElementById("adminImageFile");
+
+  statusEl.hidden = true;
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    statusEl.textContent = "Please choose an image file.";
+    statusEl.hidden = false;
+    return;
+  }
+  if (file.size > 8 * 1024 * 1024) {
+    statusEl.textContent =
+      "That photo is quite large — please choose one under 8MB.";
+    statusEl.hidden = false;
+    return;
+  }
+
+  label.textContent = "Uploading…";
+  fileInput.disabled = true;
+
+  try {
+    const resizedBlob = await resizeImageForUpload(file);
+    const base64 = await blobToBase64(resizedBlob);
+
+    const res = await fetch(SITE_CONFIG.ordersEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        type: "uploadImage",
+        password: adminPassword,
+        filename: file.name,
+        mimeType: "image/jpeg",
+        data: base64,
+      }),
+    });
+    const data = await res.json();
+
+    if (data && data.status === "ok" && data.url) {
+      document.getElementById("adminImage").value = data.url;
+      preview.src = data.url;
+      preview.hidden = false;
+      showToast("Photo uploaded");
+    } else {
+      statusEl.textContent =
+        (data && data.message) ||
+        "Could not upload the photo. Please try again.";
+      statusEl.hidden = false;
+    }
+  } catch (err) {
+    statusEl.textContent =
+      "Could not upload the photo. Please check your connection and try again.";
+    statusEl.hidden = false;
+  } finally {
+    label.textContent = "Upload a photo";
+    fileInput.disabled = false;
   }
 }
 
