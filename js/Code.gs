@@ -18,6 +18,35 @@ const SHEET_NAME = "Orders";
 const PRODUCTS_SHEET_NAME = "Products";
 const CUSTOMERS_SHEET_NAME = "Customers";
 
+// The admin password is NOT stored here — it lives in this script's
+// "Script Properties" instead, so it never ends up in your public
+// GitHub repo. To set it: in the Apps Script editor, click the gear
+// icon (Project Settings) > Script Properties > Add script property.
+// Key: ADMIN_PASSWORD   Value: choose a password.
+const ADMIN_PASSWORD_KEY = "ADMIN_PASSWORD";
+
+function jsonOutput_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(
+    ContentService.MimeType.JSON,
+  );
+}
+
+function checkAdminPassword_(password) {
+  const stored =
+    PropertiesService.getScriptProperties().getProperty(ADMIN_PASSWORD_KEY);
+  return !!stored && !!password && stored === password;
+}
+
+function slugify_(text) {
+  return (
+    String(text)
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "product"
+  );
+}
+
 const CUSTOMER_HEADERS = [
   "Phone",
   "Name",
@@ -261,9 +290,29 @@ const HEADERS = [
 ];
 
 function doPost(e) {
+  let data;
+  try {
+    data = JSON.parse(e.postData.contents);
+  } catch (err) {
+    return jsonOutput_({ status: "error", message: "Invalid request." });
+  }
+
+  const type = data.type || "order";
+  if (type === "adminLogin") {
+    return handleAdminLogin_(data);
+  }
+  if (type === "addProduct") {
+    return handleAddProduct_(data);
+  }
+  if (type === "updateProduct") {
+    return handleUpdateProduct_(data);
+  }
+  return handleOrder_(data);
+}
+
+function handleOrder_(data) {
   try {
     const sheet = getOrdersSheet_();
-    const data = JSON.parse(e.postData.contents);
 
     sheet.appendRow([
       data.orderId || "",
@@ -283,13 +332,138 @@ function doPost(e) {
 
     upsertCustomer_(data);
 
-    return ContentService.createTextOutput(
-      JSON.stringify({ status: "ok", orderId: data.orderId }),
-    ).setMimeType(ContentService.MimeType.JSON);
+    return jsonOutput_({ status: "ok", orderId: data.orderId });
   } catch (err) {
-    return ContentService.createTextOutput(
-      JSON.stringify({ status: "error", message: err.message }),
-    ).setMimeType(ContentService.MimeType.JSON);
+    return jsonOutput_({ status: "error", message: err.message });
+  }
+}
+
+function handleAdminLogin_(data) {
+  const authorized = checkAdminPassword_(data.password);
+  return jsonOutput_({ status: "ok", authorized: authorized });
+}
+
+function handleAddProduct_(data) {
+  if (!checkAdminPassword_(data.password)) {
+    return jsonOutput_({
+      status: "error",
+      message: "Incorrect admin password.",
+    });
+  }
+
+  const p = data.product || {};
+  const name = String(p.name || "").trim();
+  const category = String(p.category || "").trim();
+  const price = Number(p.price) || 0;
+
+  if (!name || !category || price <= 0) {
+    return jsonOutput_({
+      status: "error",
+      message: "Name, category, and a price above 0 are required.",
+    });
+  }
+
+  try {
+    const sheet = getProductsSheet_();
+    const existingIds = sheet
+      .getDataRange()
+      .getValues()
+      .slice(1)
+      .map(function (row) {
+        return String(row[0]).trim();
+      });
+
+    let id = slugify_(name);
+    let uniqueId = id;
+    let suffix = 2;
+    while (existingIds.indexOf(uniqueId) !== -1) {
+      uniqueId = id + "-" + suffix;
+      suffix++;
+    }
+
+    sheet.appendRow([
+      uniqueId,
+      name,
+      category,
+      String(p.categoryLabel || category).trim(),
+      price,
+      String(p.unit || "").trim(),
+      String(p.image || "").trim(),
+      String(p.icon || "leaf").trim(),
+      String(p.description || "").trim(),
+      p.inStock !== false,
+      !!p.featured,
+    ]);
+
+    const newRow = sheet.getLastRow();
+    sheet.getRange(newRow, 10, 1, 1).insertCheckboxes();
+    sheet.getRange(newRow, 11, 1, 1).insertCheckboxes();
+
+    return jsonOutput_({ status: "ok", id: uniqueId });
+  } catch (err) {
+    return jsonOutput_({ status: "error", message: err.message });
+  }
+}
+
+function handleUpdateProduct_(data) {
+  if (!checkAdminPassword_(data.password)) {
+    return jsonOutput_({
+      status: "error",
+      message: "Incorrect admin password.",
+    });
+  }
+
+  const id = String(data.id || "").trim();
+  const p = data.product || {};
+  const name = String(p.name || "").trim();
+  const category = String(p.category || "").trim();
+  const price = Number(p.price) || 0;
+
+  if (!id) {
+    return jsonOutput_({ status: "error", message: "Missing product ID." });
+  }
+  if (!name || !category || price <= 0) {
+    return jsonOutput_({
+      status: "error",
+      message: "Name, category, and a price above 0 are required.",
+    });
+  }
+
+  try {
+    const sheet = getProductsSheet_();
+    const values = sheet.getDataRange().getValues();
+
+    for (let i = 1; i < values.length; i++) {
+      if (String(values[i][0]).trim() === id) {
+        const rowNum = i + 1;
+        sheet
+          .getRange(rowNum, 1, 1, PRODUCT_HEADERS.length)
+          .setValues([
+            [
+              id,
+              name,
+              category,
+              String(p.categoryLabel || category).trim(),
+              price,
+              String(p.unit || "").trim(),
+              String(p.image || "").trim(),
+              String(p.icon || "leaf").trim(),
+              String(p.description || "").trim(),
+              p.inStock !== false,
+              !!p.featured,
+            ],
+          ]);
+        return jsonOutput_({ status: "ok", id: id });
+      }
+    }
+
+    return jsonOutput_({
+      status: "error",
+      message:
+        "That product couldn't be found — it may have been removed from the Sheet.",
+    });
+  } catch (err) {
+    return jsonOutput_({ status: "error", message: err.message });
   }
 }
 

@@ -207,21 +207,51 @@ function renderGrid() {
   });
 }
 
+/* ============================================================
+   IMAGE URL HANDLING
+   Accepts either a relative path (images/photo.jpg) or a Google Drive
+   share link, and converts Drive links into a URL that works directly
+   in an <img> tag.
+   ============================================================ */
+function normalizeImageUrl(raw) {
+  const value = String(raw || "").trim();
+  if (!value) return "";
+
+  // Already a plain path or a non-Drive URL — use as-is.
+  if (!value.includes("drive.google.com")) return value;
+
+  // Common Drive share link shapes:
+  //   https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+  //   https://drive.google.com/open?id=FILE_ID
+  //   https://drive.google.com/uc?id=FILE_ID&export=download
+  let fileId = "";
+  const fileMatch = value.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  const idMatch = value.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (fileMatch) fileId = fileMatch[1];
+  else if (idMatch) fileId = idMatch[1];
+
+  if (!fileId) return value; // unrecognised Drive URL shape — pass through
+
+  return `https://drive.google.com/uc?export=view&id=${fileId}`;
+}
+
 function tileMediaHtml(p) {
   const icon = ICONS[p.icon] || ICONS.leaf;
   const fallback = `<div class="tile-fallback">${icon}</div>`;
-  if (!p.image) return fallback;
+  const src = normalizeImageUrl(p.image);
+  if (!src) return fallback;
   const escapedFallback = fallback
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
-  return `<img class="tile-img" src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.outerHTML='${escapedFallback}';" />`;
+  return `<img class="tile-img" src="${src}" alt="${p.name}" loading="lazy" onerror="this.outerHTML='${escapedFallback}';" />`;
 }
 
 function thumbMediaHtml(p) {
   const icon = ICONS[p.icon] || ICONS.leaf;
-  if (!p.image) return icon;
+  const src = normalizeImageUrl(p.image);
+  if (!src) return icon;
   const escapedIcon = icon.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-  return `<img src="${p.image}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='${escapedIcon}';" />`;
+  return `<img src="${src}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='${escapedIcon}';" />`;
 }
 
 function productCardHtml(p) {
@@ -593,6 +623,9 @@ function bindGlobalEvents() {
     goToAdminStep("login");
   });
   document.getElementById("adminAddToggle").addEventListener("click", () => {
+    editingProductId = null;
+    document.getElementById("adminFormTitle").textContent = "Add a new product";
+    document.getElementById("adminSaveBtn").textContent = "Save product";
     document.getElementById("adminAddForm").hidden = false;
     document.getElementById("adminAddToggle").hidden = true;
   });
@@ -650,6 +683,7 @@ function bindGlobalEvents() {
 let adminAuthed = false;
 let adminPassword = "";
 let adminIconsPopulated = false;
+let editingProductId = null;
 
 function openAdminDrawer() {
   document.getElementById("cartDrawer").classList.remove("is-open");
@@ -766,9 +800,41 @@ function renderAdminProductList() {
         <span class="admin-badge ${p.inStock ? "admin-badge--in" : "admin-badge--out"}">${p.inStock ? "In stock" : "Out of stock"}</span>
       </div>
       <div class="admin-product-row__price">${SITE_CONFIG.currencySymbol}${p.price}</div>
+      <button type="button" class="admin-edit-btn" data-edit-id="${p.id}">Edit</button>
     </div>
   `,
   ).join("");
+
+  container.querySelectorAll("[data-edit-id]").forEach((btn) => {
+    btn.addEventListener("click", () => startEditProduct(btn.dataset.editId));
+  });
+}
+
+function startEditProduct(id) {
+  const p = PRODUCTS.find((x) => x.id === id);
+  if (!p) return;
+
+  editingProductId = id;
+  document.getElementById("adminFormTitle").textContent = `Edit: ${p.name}`;
+  document.getElementById("adminSaveBtn").textContent = "Save changes";
+  document.getElementById("adminSaveError").classList.remove("is-visible");
+
+  document.getElementById("adminName").value = p.name || "";
+  document.getElementById("adminCategory").value = p.category || "";
+  document.getElementById("adminCategoryLabel").value = p.categoryLabel || "";
+  document.getElementById("adminPrice").value = p.price || "";
+  document.getElementById("adminUnit").value = p.unit || "";
+  document.getElementById("adminImage").value = p.image || "";
+  document.getElementById("adminIcon").value = p.icon || "leaf";
+  document.getElementById("adminDescription").value = p.description || "";
+  document.getElementById("adminInStock").checked = p.inStock !== false;
+  document.getElementById("adminFeatured").checked = !!p.featured;
+
+  document.getElementById("adminAddForm").hidden = false;
+  document.getElementById("adminAddToggle").hidden = true;
+  document
+    .getElementById("adminAddForm")
+    .scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function resetAdminAddForm() {
@@ -777,6 +843,9 @@ function resetAdminAddForm() {
   document.getElementById("adminAddToggle").hidden = false;
   document.getElementById("adminSaveError").classList.remove("is-visible");
   document.getElementById("adminInStock").checked = true;
+  document.getElementById("adminFormTitle").textContent = "Add a new product";
+  document.getElementById("adminSaveBtn").textContent = "Save product";
+  editingProductId = null;
 }
 
 async function submitNewProduct() {
@@ -807,24 +876,30 @@ async function submitNewProduct() {
     featured: document.getElementById("adminFeatured").checked,
   };
 
+  const isEditing = !!editingProductId;
   const btn = document.getElementById("adminSaveBtn");
   btn.disabled = true;
-  btn.textContent = "Saving…";
+  btn.textContent = isEditing ? "Saving changes…" : "Saving…";
 
   try {
+    const body = isEditing
+      ? {
+          type: "updateProduct",
+          password: adminPassword,
+          id: editingProductId,
+          product,
+        }
+      : { type: "addProduct", password: adminPassword, product };
+
     const res = await fetch(SITE_CONFIG.ordersEndpoint, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({
-        type: "addProduct",
-        password: adminPassword,
-        product,
-      }),
+      body: JSON.stringify(body),
     });
     const data = await res.json();
 
     if (data && data.status === "ok") {
-      showToast("Product added");
+      showToast(isEditing ? "Product updated" : "Product added");
       resetAdminAddForm();
       await loadProductsFromSheet();
       renderCategoryChips();
@@ -843,7 +918,7 @@ async function submitNewProduct() {
     errorBanner.classList.add("is-visible");
   } finally {
     btn.disabled = false;
-    btn.textContent = "Save product";
+    btn.textContent = isEditing ? "Save changes" : "Save product";
   }
 }
 

@@ -468,6 +468,9 @@
           </button>
 
           <form id="adminAddForm" class="admin-add-form" novalidate hidden>
+            <h3 id="adminFormTitle" class="admin-list-title">
+              Add a new product
+            </h3>
             <div class="form-error-banner" id="adminSaveError">
               Please check the highlighted fields.
             </div>
@@ -516,12 +519,17 @@
               />
             </div>
             <div class="field">
-              <label for="adminImage">Image path</label>
+              <label for="adminImage">Image</label>
               <input
                 type="text"
                 id="adminImage"
-                placeholder="images/your-photo.jpg"
+                placeholder="images/your-photo.jpg, or paste a Google Drive share link"
               />
+              <p class="admin-field-hint">
+                Either a path like <code>images/photo.jpg</code>, or paste a
+                Google Drive share link (set sharing to "Anyone with the link")
+                — it'll be converted automatically.
+              </p>
             </div>
             <div class="field">
               <label for="adminIcon"

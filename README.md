@@ -146,7 +146,15 @@ required for that part, though you can still use the Sheet too.
 
 On the site, click the shield icon top-right, enter that password, and
 you'll see every product currently in your Sheet plus a form to add a
-new one. New products are saved straight to the **Products** tab.
+new one. New products are saved straight to the **Products** tab. Click
+**Edit** on any existing product to change its details, price, or
+photo — saving updates that same row in the Sheet.
+
+For product photos, the **Image** field in the admin form accepts
+either a local path (`images/photo.jpg`, see the images/ folder) or a
+Google Drive share link — paste a Drive "Anyone with the link" share
+URL and the site converts it automatically. See `images/README.md` for
+the Drive sharing steps.
 
 **To change the password later:** just edit the value of that same
 Script Property — no redeploy needed.
